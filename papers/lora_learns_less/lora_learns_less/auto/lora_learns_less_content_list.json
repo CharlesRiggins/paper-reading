@@ -1,0 +1,4900 @@
+[
+    {
+        "type": "text",
+        "text": "LoRA Learns Less and Forgets Less",
+        "text_level": 1,
+        "bbox": [
+            112,
+            97,
+            606,
+            122
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Dan Biderman1,2, Jacob Portes2, Jose Javier Gonzalez Ortiz2, Mansheej Paul2, Philip Greengard1, Connor Jennings2, Daniel King2, Sam Havens2, Vitaliy Chiley2, Jonathan Frankle2, Cody Blakeney2, John P. Cunningham1",
+        "bbox": [
+            111,
+            155,
+            885,
+            200
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1Columbia University {db3236, pg2118, jpc2181}@columbia.edu",
+        "bbox": [
+            112,
+            202,
+            599,
+            217
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "2Databricks Mosaic Research {jacob.portes, j.gonzalez, mansheej.paul, connor.jennings, daniel.king, sam.havens, vitaliy.chiley, jfrankle, cody.blakeney}@databricks.com",
+        "bbox": [
+            111,
+            217,
+            885,
+            247
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Reviewed on OpenReview: https://openreview.net/forum?id=aloEru2qCG",
+        "bbox": [
+            112,
+            262,
+            707,
+            277
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Abstract",
+        "text_level": 2,
+        "bbox": [
+            455,
+            311,
+            540,
+            328
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Low-Rank Adaptation (LoRA) is a widely-used parameter-efficient finetuning method for large language models. LoRA saves memory by training only low rank perturbations to selected weight matrices. In this work, we compare the performance of LoRA and full finetuning on two target domains, programming and mathematics. We consider both the instruction finetuning (≈100K prompt-response pairs) and continued pretraining (≈20B unstructured tokens) data regimes. Our results show that, in the standard low-rank settings, LoRA substantially underperforms full finetuning. Nevertheless, LoRA better maintains the base model’s performance on tasks outside the target domain. We show that LoRA mitigates forgetting more than common regularization techniques such as weight decay and dropout; it also helps maintain more diverse generations. Finally, we show that full finetuning learns perturbations with a rank that is 10-100× greater than typical LoRA configurations, possibly explaining some of the reported gaps. We conclude by proposing best practices for finetuning with LoRA.",
+        "bbox": [
+            169,
+            348,
+            826,
+            546
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1 Introduction",
+        "text_level": 2,
+        "bbox": [
+            114,
+            574,
+            263,
+            590
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Finetuning large language models (LLMs) with billions of weights requires a non-trivial amount of GPU memory. Parameter-efficient finetuning methods reduce the memory footprint during training by freezing a pretrained LLM and only training a small number of additional parameters, often called adapters. Low-Rank Adaptation (LoRA; Hu et al. (2021)) trains adapters that are low-rank perturbations to selected weight matrices.",
+        "bbox": [
+            111,
+            607,
+            883,
+            683
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "LoRA is widely adopted for finetuning LLMs under hardware constraints, but the jury is still out on whether it compromises performance compared to full finetuning. The two seminal methods papers on the topic, which introduce LoRA (Hu et al., 2021) and its more recent combination with model quantization (QLoRA; Dettmers et al. (2024)), reported that LoRA performs better or equivalent to full finetuning. More empirical work (Ghosh et al., 2024; Zhao et al., 2024b) reaches a similar conclusion; this sentiment is echoed in an array of industry blog posts as well (e.g., Raschka (2023); Niederfahrenhorst et al. (2023)). At the same time, there is evidence that LoRA underperforms full finetuning (Ivison et al., 2023; Zhuo et al., 2024), and the need to improve upon LoRA has led to the development of enhanced LoRA variants (Hayou et al., 2024; Meng et al., 2024; Li et al., 2023b; Shi et al., 2024) or alternative low-rank approximation methods (e.g Liu et al. (2024); Zhao et al. (2024a)). To shed light on this ongoing debate, we ask: under which conditions does LoRA approximate full finetuning accuracy on challenging target domains, such as code and math?",
+        "bbox": [
+            111,
+            690,
+            885,
+            858
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "By training fewer parameters, LoRA is hypothesized to constrain the finetuned model from diverging significantly from the base model (Sun et al., 2023; Du et al., 2024). This potential characteristic is particularly helpful for LLM finetuning, a form of continual learning where specializing in new domains can come at the expense of base model capabilities (Wang et al., 2024) (a phenomenon known its extreme form as “catastrophic forgetting” McCloskey & Cohen (1989); French (1999)). To date, only a few studies have examined forgetting in modern LLMs (Vu et al., 2022; Kleiman et al., 2023; Kalajdzievski, 2024). To address this gap, we also ask: when performing continual learning on a new domain, to what extent does LoRA mitigate forgetting of base model capabilities?",
+        "bbox": [
+            111,
+            864,
+            885,
+            925
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "aside_text",
+        "text": "arXiv:2405.09673v2 [cs.LG] 20 Sep 2024",
+        "bbox": [
+            21,
+            263,
+            58,
+            705
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_number",
+        "text": "",
+        "bbox": [
+            493,
+            949,
+            503,
+            959
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            111,
+            103,
+            885,
+            165
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "In this study, we compare LoRA and full finetuning for Llama-2-7B models across two challenging target domains, code and mathematics. Within each domain, we explore two training regimes. The first regime is continued pretraining, which involves training on billions of unlabeled domain-specific tokens, most commonly via full finetuning; here we use the StarCoder-Python (Li et al., 2023a) and OpenWebMath (Paster et al., 2023) datasets (Table 1). The second is instruction finetuning, the common scenario for LoRA involving questionanswer datasets with tens to hundreds of millions of tokens. Here, we use Magicoder-Evol-Instruct-110K (Wei et al., 2023) and MetaMathQA (Yu et al., 2023).",
+        "bbox": [
+            111,
+            171,
+            885,
+            279
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "We evaluate target-domain performance (henceforth, learning) via challenging coding and math benchmarks (HumanEval; Chen et al. (2021), and GSM8K; Cobbe et al. (2021)). We evaluate source-domain forgetting performance on language understanding, world knowledge, and common-sense reasoning tasks (Zellers et al., 2019; Sakaguchi et al., 2019; Clark et al., 2018).",
+        "bbox": [
+            111,
+            285,
+            885,
+            347
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "We find that with commonly used low-rank settings, LoRA substantially underperforms full finetuning, while typically requiring longer training (Sec. 4.1). In continued pretraining, the performance gap between full finetuning and LoRA is not closed even with high ranks. In instruction finetuning, on the other hand, high ranks can match full finetuning performance.",
+        "bbox": [
+            111,
+            352,
+            883,
+            414
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Despite LoRA’s limitations, we show that it consistently maintains better source-domain performance compared to full finetuning (Sec. 4.2). Furthermore, we characterize the tradeoff between learning and forgetting (Sec. 4.3). We then show that LoRA – even with higher rank – mitigates forgetting more aggressively than classic regularization techniques that aim to prevent overfitting, such as dropout (Srivastava et al., 2014; Goodfellow et al., 2013), and weight decay (Goodfellow et al., 2016). Moreover, by analyzing the generated solutions to HumanEval problems, we demonstrate that while full finetuning tends to produce a limited set of solutions, LoRA produces a wider range of solutions more akin to those of the base model (Sun et al., 2023; Du et al., 2024)",
+        "bbox": [
+            111,
+            420,
+            885,
+            542
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Why does LoRA underperform full finetuning? LoRA was originally motivated in part by the hypothesis that finetuning results in low-rank perturbations to the base model’s weight matrix (Li et al., 2018; Aghajanyan et al., 2020; Hu et al., 2021). However, the tasks explored by these prior works are relatively easy for modern LLMs, and certainly easier than the coding and math domains studied here. Thus, we perform a singular value decomposition to show that full finetuning barely changes the spectrum of the base model’s weight matrices, and yet the difference between the two (i.e. the perturbation) is high rank. The rank of the perturbation grows as training progresses, with ranks 10-100× higher than typical LoRA configurations (Figure 6).",
+        "bbox": [
+            111,
+            549,
+            885,
+            656
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "We conclude by proposing best practices for training models with LoRA. We find that LoRA is very sensitive to hyperparameters, including learning rates, choice of target modules, ranks, and scaling factors; setting these properly is a prerequisite to approach full finetuning performance.",
+        "bbox": [
+            111,
+            662,
+            885,
+            709
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "To summarize, we contribute the following results:",
+        "bbox": [
+            112,
+            715,
+            478,
+            731
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• Full finetuning is more accurate and sample-efficient than LoRA in continued pretraining (CPT) for code and math; in instruction finetuning (IFT), higher ranks can close most of the gaps (Sec.4.1).",
+        "bbox": [
+            151,
+            747,
+            883,
+            779
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• LoRA forgets less of the source domain (Sec. 4.2 and 4.3).",
+        "bbox": [
+            151,
+            787,
+            593,
+            803
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• LoRA forgets less than common regularization techniques; it also helps maintaining the diversity of generations (Sec. 4.5).",
+        "bbox": [
+            151,
+            813,
+            885,
+            843
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• Full finetuning finds high rank weight perturbations (Sec. 4.6).",
+        "bbox": [
+            151,
+            852,
+            625,
+            868
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• A hyperparameter sensitivity analysis for LoRA, as well as practical recommendations (Sec. 4.7).",
+        "bbox": [
+            151,
+            877,
+            869,
+            893
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Model checkpoints and LoRA adapters can be accessed at https://github.com/danbider/lora-tradeoffs.",
+        "bbox": [
+            112,
+            909,
+            885,
+            924
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "page_number",
+        "text": "2",
+        "bbox": [
+            493,
+            948,
+            504,
+            959
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "table",
+        "img_path": "images/f2f5f16301de39095202af94255ea5fb8f5c71831aeedae951e4d4bb6f2b36f6.jpg",
+        "table_caption": [
+            "Table 1: Datasets and token counts for math and code experiments"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td></td><td>Code</td><td>Math</td></tr><tr><td>CPT</td><td>StarCoder-Python (up to 20B tokens)</td><td>OpenWebMath (14.7B tokens)</td></tr><tr><td>IFT</td><td>Magicoder-Evol-Instruct-110K (72.97M tokens）MetaMathQA (103M tokens)</td><td></td></tr></table>",
+        "bbox": [
+            173,
+            101,
+            823,
+            166
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "2 Background",
+        "text_level": 2,
+        "bbox": [
+            112,
+            218,
+            264,
+            237
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "LoRA involves freezing a pretrained weight matrix $W _ { \\mathrm { p r e t r a i n e d } } \\in \\mathbb { R } ^ { d \\times k }$ , and learning only a low-rank perturbation to it, denoted here as $\\Delta ,$ , as follows:",
+        "bbox": [
+            111,
+            251,
+            885,
+            282
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "img_path": "images/39562feeea8adc40916edab5d2a2b9a5b6159957a126f565189267d2424dcb35.jpg",
+        "text": "$$\n\\begin{array} { r } { W _ { \\mathrm { f i n e t u n e d } } = W _ { \\mathrm { p r e t r a i n e d } } + \\Delta } \\\\ { \\Delta = \\gamma _ { r } A B , \\quad A \\in \\mathbb { R } ^ { d \\times r } , \\quad B \\in \\mathbb { R } ^ { r \\times k } . } \\end{array}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            361,
+            292,
+            633,
+            330
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Most common implementations initialize $A _ { 0 } \\sim \\mathcal { N } ( 0 , 1 ) , B _ { 0 } = 0$ and set the scalar $\\gamma _ { r } = \\alpha / r$ with a controllable hyperparameter α. The user chooses which $W _ { \\mathrm { p r e t r a i n e d } }$ to adapt (“target modules”), the rank $r < < d , k ,$ and the hyperparameter α. By doing so, only $\\boldsymbol { d } \\times \\boldsymbol { r } + \\boldsymbol { r } \\times \\boldsymbol { k }$ parameters are trained per module instead of $d \\times k ,$ which reduces the memory and FLOPS required for computing the gradient. As an example, applying a r = 16 LoRA adapter to a 7B weight matrix with d = k = 4096 trains < 1% of the original parameter count. Appendix Sec. H lays out the approximate memory savings by LoRA during training.",
+        "bbox": [
+            111,
+            339,
+            885,
+            433
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "LoRA’s introduction and first applications targeted only the $W _ { q }$ and $W _ { v }$ matrices in the self-attention module (Hu et al., 2021). Since then, it has become best practice to target all transformer modules (Raschka, 2023; Dettmers et al., 2024), i.e., $\\{ W _ { q } ^ { ( l ) } , W _ { k } ^ { ( l ) } , W _ { v } ^ { ( l ) } , W _ { o } ^ { ( l ) } \\} _ { l = 1 } ^ { L }$ in the self-attention modules, and $\\{ W _ { \\mathrm { g a t e } } ^ { ( l ) } , W _ { \\mathrm { u p } } ^ { ( l ) } , W _ { \\mathrm { d o w n } } ^ { ( l ) } \\} _ { l = 1 } ^ { L }$ 1 in the feedforward modules for L layers in, say, a Llama architecture (Hu et al., 2021; Touvron et al., 2023).",
+        "bbox": [
+            111,
+            438,
+            885,
+            520
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3 Experimental Setup",
+        "text_level": 2,
+        "bbox": [
+            112,
+            537,
+            333,
+            556
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "We train on code and math datasets that have been shown to increase downstream performance. We motivate the training datasets and evaluation benchmarks below. All training was done using the Databricks MosaicML composer1, streaming2, and llm-foundry3 repositories, as well as the HuggingFace peft library.",
+        "bbox": [
+            111,
+            570,
+            883,
+            618
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3.1 Datasets for Continued Pretraining (CPT) and Instruction Finetuning (IFT)",
+        "text_level": 2,
+        "bbox": [
+            111,
+            632,
+            725,
+            648
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Coding CPT - Starcoder-Python (Li et al., 2023a) This dataset consists of permissively licensed repositories from GitHub, including Git commits, in 80+ programming languages. We chose the Python subset and sub-sampled it to 20B tokens.",
+        "bbox": [
+            111,
+            660,
+            883,
+            707
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Math CPT - OpenWebMath (Paster et al., 2023) This dataset contains 14.7B tokens derived from mathematical web pages from Common Crawl, correctly formatted to preserve mathematical content such as LaTeX equations.4 To match with the StarCoder-Python dataset, we trained on up to 20B tokens, repeating tokens beyond the first 14.7B. An analysis of this dataset shows that it contains a considerable amount of full English sentences.5",
+        "bbox": [
+            111,
+            720,
+            885,
+            797
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Coding IFT - Magicoder-Evol-Instruct-110k (Wei et al., 2023) This dataset contains 72.97M tokens of programming questions and answers. It reproduces the “Evol-Instruct” dataset of WizardCoder (Luo et al.,",
+        "bbox": [
+            111,
+            811,
+            885,
+            844
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_footnote",
+        "text": "1https://github.com/mosaicml/composer",
+        "bbox": [
+            129,
+            849,
+            398,
+            864
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_footnote",
+        "text": "2https://github.com/mosaicml/streaming",
+        "bbox": [
+            130,
+            863,
+            403,
+            876
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_number",
+        "text": "3",
+        "bbox": [
+            491,
+            948,
+            504,
+            960
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_footnote",
+        "text": "3https://github.com/mosaicml/llm-foundry",
+        "bbox": [
+            130,
+            875,
+            416,
+            888
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_footnote",
+        "text": "4https://huggingface.co/datasets/open-web-math/open-web-math",
+        "bbox": [
+            129,
+            887,
+            558,
+            900
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_footnote",
+        "text": "5Out of a random selection of 100K examples, a regex search shows that 75% of the examples contain LaTex. The data is classified as 99.7% English and “overwhelmingly English” by the langdetect and fasttext tools.",
+        "bbox": [
+            111,
+            898,
+            885,
+            924
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "2023b) by iteratively prompting an LLM (GPT-4) to increase the difficulty of a set of question-answer pairs from Code Alpaca (Chaudhary, 2023).6",
+        "bbox": [
+            111,
+            103,
+            883,
+            135
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Math IFT - MetaMathQA (Yu et al., 2023) This dataset was built by bootstrapping mathematical word problems from the training sets of GSM8K (Cobbe et al., 2021) and MATH (Hendrycks et al., 2021) by rewriting the questions with variations using GPT-3.5. This dataset contains 395K question-answer pairs and roughly 103M tokens.7",
+        "bbox": [
+            111,
+            151,
+            885,
+            213
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "We quantify learning and forgetting via benchmarks reported on the Open LLM Leaderboard8 for state of the art open-source LLMs such as Llama (Touvron et al., 2023).",
+        "bbox": [
+            111,
+            219,
+            885,
+            252
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "3.2 Measuring Learning with Coding and Math Benchmarks (target domain evaluation)",
+        "text_level": 2,
+        "bbox": [
+            112,
+            270,
+            797,
+            286
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Coding - HumanEval (Chen et al., 2021) This benchmark contains 164 problems that involve generating a Python program given a docstring and a function signature. A generation is considered correct if it passes all supplied unit tests. We use the Code Generation LM Evaluation Harness (Ben Allal et al., 2022) configured to output 50 generations per problem, and calculate “pass@1” with softmax temperature=0.2 and top\\_p=0.95 for 0-shot HumanEval.",
+        "bbox": [
+            111,
+            297,
+            885,
+            375
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Math - GSM8K (Cobbe et al., 2021) This benchmark includes a collection of 8.5K grade-school math word problems. We evaluate on the test split of GSM8K (1,319 samples) as implemented in the LM Evaluation Harness (Gao et al., 2023), with default generation parameters (temperature=0, 5 few-shot, pass@1).",
+        "bbox": [
+            111,
+            392,
+            885,
+            439
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "3.3 Forgetting Metrics (source domain evaluation)",
+        "text_level": 2,
+        "bbox": [
+            112,
+            457,
+            516,
+            473
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "We use the following benchmarks to asses degradation of base model capabilities. HellaSwag (Zellers et al., 2019) includes 70K problems that describe an event with multiple possible continuations. The task is to pick the most plausible continuation, which requires making inferences about nuanced everyday situations. WinoGrande (Sakaguchi et al., 2019) also assesses commonsense reasoning. It includes 44K problems with sentences that require ambiguous pronoun resolution. ARC-Challenge (Clark et al., 2018) consists of 7,787 grade-school level, multiple-choice science questions, and tests complex reasoning and understanding of scientific concepts. These benchmarks involve multiple-choice questions that use the predicted logits for calculating accuracy, and do not require specifying further generation hyperparameters. All forgetting metrics were computed using the MosaicML Gauntlet evaluation harness (Dohmann, 2023).9",
+        "bbox": [
+            109,
+            484,
+            885,
+            623
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "4 Results",
+        "text_level": 2,
+        "bbox": [
+            112,
+            642,
+            220,
+            660
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "4.1 Target-domain performance: LoRA at low ranks underperforms full finetuning",
+        "text_level": 2,
+        "bbox": [
+            111,
+            676,
+            758,
+            694
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "We compare LoRA and full finetuning after performing an exhaustive learning rate sweep for each method, which we found to be crucial (Dettmers et al., 2024). We include learning rate sweep results in Figure S1.",
+        "bbox": [
+            111,
+            705,
+            885,
+            736
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "We perform a sample-efficiency analysis – i.e., compute the learning metrics as a function of training samples seen – for both LoRA and full finetuning. For IFT, we train separate models for 1, 2, 4, 8, and 16 epochs. For CPT, we vary the number of training tokens (0.25, 0.5, 1, 2, 4, 8, 16, 20 billion), using individual learning rate cooldown schedules. For each condition, we train one full finetuning model and three LoRA models with ranks r = 16, 64, 256 noting that most LoRA papers use a “low” rank of 8-64, (e.g., Dettmers et al. (2024); Zhuo et al. (2024)). The LoRA models target all transformer modules and use α = 2r, as known to be best practice (Raschka, 2023). For further details on experimental setup and hyperparameters, see Appendix Sec. A.",
+        "bbox": [
+            111,
+            742,
+            887,
+            863
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_footnote",
+        "text": "6https://huggingface.co/datasets/ise-uiuc/Magicoder-Evol-Instruct-110K",
+        "bbox": [
+            130,
+            875,
+            625,
+            888
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_footnote",
+        "text": "7https://huggingface.co/datasets/meta-math/MetaMathQA",
+        "bbox": [
+            130,
+            887,
+            508,
+            900
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_footnote",
+        "text": "8https://huggingface.co/spaces/HuggingFaceH4/open\\_llm\\_leaderboard",
+        "bbox": [
+            130,
+            898,
+            589,
+            912
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_footnote",
+        "text": "9https://github.com/mosaicml/llm-foundry/tree/main/scripts/eval",
+        "bbox": [
+            130,
+            911,
+            575,
+            924
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_number",
+        "text": "4",
+        "bbox": [
+            493,
+            948,
+            504,
+            959
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Learning the target domain",
+        "text_level": 2,
+        "bbox": [
+            348,
+            102,
+            637,
+            122
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "chart",
+        "img_path": "images/88c9c6706b98ae32d400acbbc02dc82bad112d89257971159a8cb880ed4ecebf.jpg",
+        "content": "",
+        "chart_caption": [
+            "A"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            112,
+            152,
+            508,
+            392
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "chart",
+        "img_path": "images/4d28a8f1d0225b00752990824ab88788e9121dc3d97b39ab915346adc12dac14.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            534,
+            131,
+            875,
+            382
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "chart",
+        "img_path": "images/cb8a08eae3128d741c13d5866f4656cfca5028cf68ba6c5efc2f75cf820508f9.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            114,
+            405,
+            508,
+            648
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "chart",
+        "img_path": "images/4b9e6f1b851927806405615e8b1aa2f5f7371ab22d594fa93bc1845e1376cada.jpg",
+        "content": "",
+        "chart_caption": [
+            "D",
+            "Figure 1: LoRA performance scales by rank and underperforms full finetuning in code and math. (A) Starcoder-Python, (B) Magicoder-Evol-Instruct-110K, (C ) OpenWebMath, (D) MetaMathQA. In (A) and (B) y-axis: HumanEval pass@1. In (C ) and (D) y-axis: GSM8K strict match. In all panels, “base model” indicates Llama-2-7B without instruction finetuning. Note that 16 epochs are ≈1.16B and ≈1.6B tokens, for Magicoder-Evol-Instruct-110K and MetaMathQA, respectively."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            539,
+            411,
+            872,
+            637
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "The results appear in Fig. 1. We first note that for both programming and math, IFT improves evaluation scores much more than CPT, which is expected because the samples in each IFT dataset are more similar to the evaluation problems (e.g., for code, IFT achieves maximum HumanEval of 0.497 vs. 0.263 for CPT).",
+        "bbox": [
+            111,
+            795,
+            883,
+            843
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "For Code CPT (Fig. 1A and Table S1), we identify a substantial gap between full finetuning and LoRA that grows with more data. The best LoRA model, with rank r = 256, peaks at 20B tokens with HumanEval=0.224, roughly matching full finetuning with 4B tokens (HumanEval=0.218). Full finetuning reaches its peak HumanEval of 0.263 at 20B tokens. A clear ordering by rank emerges after the initial 1B CPT tokens.",
+        "bbox": [
+            111,
+            848,
+            885,
+            924
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            114,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "page_number",
+        "text": "5",
+        "bbox": [
+            493,
+            948,
+            504,
+            960
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "For Code IFT (Fig. 1B and Table S5), HumanEval accuracy is clearly ordered by rank from the very first epoch. The more common r = 16 and r = 64 LoRA configurations have lower accuracy than full finetuning, with HumanEval scores of 0.358 and 0.417 at epoch 4, respectively). With a high LoRA rank (r = 256), full finetuning performance can be matched (LoRA=0.498 in epoch 4, full finetuning=0.497 in epoch 8). In Appendix Sec. F we perform a more sensitive HumanEval analysis, calculating pass@k as a function of $k = 1 , \\ldots , 2 5 6$ with a higher temperature of 0.8 for full finetuning and the LoRA models (at epoch 4). This analysis shows that full finetuning is superior to $r = 2 5 6$ for $k < 6 4$ , after which the two are equal.",
+        "bbox": [
+            111,
+            103,
+            885,
+            210
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Math CPT (Fig. 1C and S3) results closely echo those of code CPT. Consistent patterns in GSM8K emerge at 4B tokens. Full finetuning opens a gap in GSM8K which widens with more data. Similarly, LoRA performance is ordered by rank. The best LoRA (r = 256) peaks at 16B tokens (GSM8K=0.203), underperforming full finetuning at 4B tokens (GSM8K=0.224) and at its peak at 20B tokens (GSM8K=0.293).",
+        "bbox": [
+            111,
+            215,
+            885,
+            279
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "LoRA closes much of the gap with full finetuning in the Math IFT (Fig. 1D and Table S7) dataset, while remaining less sample efficient. Both methods substantially improve upon the base model; LoRA $( r = 2 5 6 )$ peaks at 8 epochs (GSM8K=0.634) while full finetuning achieves GSM8K=0.641 at 2 epochs and peaks at 4 epochs, with GSM8K=0.642.10 Unlike the code IFT dataset, r = 64 suffices to approach full finetuning and achieve GSM8K=0.624 at epoch 4. We suggest that lower ranks are effective here because English mathematics problems involve a smaller domain shift from the pretraining data as compared to coding ones.",
+        "bbox": [
+            111,
+            285,
+            885,
+            377
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "In summary, in CPT, LoRA underperforms full finetuning across all configurations. In IFT, and especially in code, high LoRA ranks are required to close the gap with full finetuning.",
+        "bbox": [
+            111,
+            382,
+            883,
+            415
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "4.2 LoRA forgets less than full finetuning",
+        "text_level": 2,
+        "bbox": [
+            112,
+            435,
+            449,
+            453
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Here, we investigate the extent of forgetting (defined in Sec. 3.2) as a function of training data in Fig. 2.",
+        "bbox": [
+            111,
+            465,
+            867,
+            483
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Overall, we observe that (1) IFT induces more forgetting than than CPT, (2) programming induces more forgetting than math, and (3) forgetting tends to worsen with training duration. Most importantly, LoRA forgets less than full finetuning, and the extent of forgetting is controlled by rank. In code – for both CPT and IFT – full finetuning forgets substantially more than any LoRA configuration. In code CPT (Table S2), at 20B tokens, full finetuning scores 0.545 versus 0.617 by LoRA r = 256. In code IFT (Table S6), full finetuning scores 0.414 versus 0.509 by LoRA r = 64. In math – for both CPT and IFT – LoRA with r = 256 forgets nearly as much as full finetuning. In CPT (Table S4), LoRA scores 0.616 (20B tokens) versus 0.613 of full finetuning (16B tokens). In IFT (Table S8), LoRA and full finetuing respectively degrade to 0.567 and 0.559 at epoch 16.",
+        "bbox": [
+            111,
+            488,
+            885,
+            625
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "We note that the least forgetting occurs for the OpenWebMath dataset, which is dominated by English sentences (see 3.1 for details).",
+        "bbox": [
+            111,
+            632,
+            883,
+            662
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "4.3 The Learning-Forgetting Tradeoff",
+        "text_level": 2,
+        "bbox": [
+            112,
+            684,
+            415,
+            702
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "It is trivial that models that change less when finetuned to a new target domain will forget less of the source domain. The nontrivial question is: do LoRA and full finetuning differ in how they trade off learning and forgetting? Can LoRA achieve similar target domain performance but with diminished forgetting?",
+        "bbox": [
+            111,
+            715,
+            885,
+            762
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "We form learning-forgetting Pareto curves by plotting the forgetting metric versus the learning metric for each training duration (Fig. 3). As models train on more data, they learn more and forget more, traveling up and left in this space. As we increase LoRA ranks, we find that the curves shift up and left as well, again, learning more and forgetting more, doing so more consistently in IFT than CPT.",
+        "bbox": [
+            111,
+            768,
+            885,
+            830
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Each dataset presents a unique tradeoff pattern which makes it difficult to conclude whether LoRA and full finetuning offer fundamentally different learning-forgetting tradeoffs. We will review each dataset next.",
+        "bbox": [
+            111,
+            835,
+            883,
+            867
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "page_footnote",
+        "text": "10We note that the original MetaMath paper reports a maximum accuracy of 0.665 when (fully) finetuning Llama-2-7B on the MetaMathQA dataset. We attribute this to small differences in hyperparameters; they trained on 3 epochs with a batch size of 128 using the AdamW optimizer, a learning rate of 2e-5, a learning rate warmup of 3%.",
+        "bbox": [
+            111,
+            886,
+            885,
+            925
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "page_number",
+        "text": "6",
+        "bbox": [
+            491,
+            948,
+            504,
+            960
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Forgetting the source domain",
+        "text_level": 2,
+        "bbox": [
+            352,
+            102,
+            666,
+            122
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "chart",
+        "img_path": "images/69cb9ae6bcf6435a136c15009d8f217d19879562bc7416e7074c60f71227ba9f.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            116,
+            131,
+            509,
+            388
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "chart",
+        "img_path": "images/747db27b4ba7b0dbcdf0de3e65a93dbb554bb28e4d4150beefe360a0729ddc9d.jpg",
+        "content": "",
+        "chart_caption": [
+            "B"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            534,
+            131,
+            875,
+            378
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "chart",
+        "img_path": "images/9b49aa76f38da1242bcd90285da3abed196b7593de3c56f3332ac3e8160daf9b.jpg",
+        "content": "",
+        "chart_caption": [
+            "C"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            112,
+            410,
+            511,
+            643
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "chart",
+        "img_path": "images/b1a06a9678a04e50c6d587f5f371e3ee8481f1f4ba05cbb430727bdc2f123c3d.jpg",
+        "content": "",
+        "chart_caption": [
+            "D",
+            "Figure 2: LoRA forgets less than full finetuning. In all panels, the y-axis shows the average of HellaSwag, ARC-Challenge and Winogrande for Llama-2-7B trained trained on: (A) StarCoder-Python (B) Magicoder-Evol-Instruct-110k (C) OpenWebMath (D) MetaMathQA."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            534,
+            410,
+            872,
+            632
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "For Code CPT, though the full finetuning curve reaches much higher values of HumanEval, it appears to forget more for any given HumanEval value, which LoRA can reach if trained on more tokens. This pattern does not hold for math CPT, where LoRA and full finetuning curves are roughly overlapping until full finetuning shoots up (in 4B tokens) to achieve much higher GSM8K scores without increased forgetting. In code IFT, LoRA $r = 2 5 6$ offers comparable HumanEval accuracy while strictly forgetting less. Lower ranks do not reach high values on HumanEval to compare to full finetuning. In math IFT, LoRA and full finetuning seem to lie on adjacent learning-forgetting tradeoff curves, with full finetuning offering preferable tradeoffs.",
+        "bbox": [
+            111,
+            765,
+            885,
+            873
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "With the caveats mentioned above, it seems that LoRA can offer preferable learning-forgetting tradeoffs for code, while full finetuning can offer preferable tradeoffs for math. Moreover the choice of LoRA rank can serve as a knob to navigate the learning-forgetting tradeoffs.",
+        "bbox": [
+            111,
+            878,
+            885,
+            925
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "page_number",
+        "text": "7",
+        "bbox": [
+            493,
+            948,
+            504,
+            960
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "The learning-forgetting tradeoff",
+        "text_level": 2,
+        "bbox": [
+            343,
+            102,
+            679,
+            122
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "chart",
+        "img_path": "images/6b60f8de96bb507568828252caf67d2c4e9a71f49853dc86fa7f9344e93ee923.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            114,
+            131,
+            503,
+            386
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "chart",
+        "img_path": "images/85f6d1dd6d8e5aaef914be34277362c2946ace87b209cea603c50df84e9bc237.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            532,
+            131,
+            872,
+            386
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "chart",
+        "img_path": "images/3ae311c7494bc0ae061a4ab6e9f72d9262743e787e93ca599360ac5aab6d26d6.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            114,
+            406,
+            503,
+            641
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "chart",
+        "img_path": "images/ee10b2c54915e228edc0a85bc68c49a7031b8b376e30faf450d52915725ee3b8.jpg",
+        "content": "",
+        "chart_caption": [
+            "D",
+            "Figure 3: LoRA vs. full finetuning tradeoff for Llama-2-7B. Relative to full finetuning, LoRA learns less (lower values on the y-axis) and forgets less (higher values on the x-axis). Each dot is a separate model, with marker size corresponding to training duration (from 0.25-20 billion tokens for CPT, and 1-16 epochs for IFT). Same data as Figures 1, 2."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            529,
+            411,
+            877,
+            641
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "4.4 For the Tülu-v2-mix dataset, LoRA is on par with full finetuning",
+        "text_level": 2,
+        "bbox": [
+            112,
+            756,
+            645,
+            772
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "So far, we analyzed how LoRA and full finetuning specialize in very specific domains. Often, code or math problems appear as part of larger IFT data mixtures that include multi-turn conversations and a variety of other NLP tasks, such as summarization, etc. (e.g. Wei et al. (2021)). We therefore finetuned LoRA and full finetuning models on one such popular dataset, the Tülu-v2-mix (Ivison et al., 2023). The results are presented in the Appendix (Sec. C and Table S9). In summary, we find that both LoRA and full finetuning meaningfully improve upon the base model, and that LoRA, even with lower ranks, can match full finetuning in chat quality as measured by Multi-Turn Benchmark (MT-bench (Zheng et al., 2024)), GSM8K (Cobbe et al., 2021), and Massive Multitask Language Understanding (MMLU; Hendrycks et al. (2020)). At longer training durations (6 epochs), LoRA also forgets less.",
+        "bbox": [
+            109,
+            789,
+            885,
+            926
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "page_number",
+        "text": "8",
+        "bbox": [
+            491,
+            948,
+            504,
+            960
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Llama-2-7B trained on Magicoder-Evol-Instruct-110K",
+        "bbox": [
+            312,
+            103,
+            686,
+            119
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/8a89e4e01544a5c000837ba34d030500c0d71c9cb2008034d1e2ecee76432055.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            194,
+            131,
+            493,
+            337
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/263d6faef2122ff12ceab54578c61963420bd65b4ec3675a331c2ed6bd978e9d.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 4: LoRA forgets less than attention dropout and weight decay. Results from Llama-2-7B finetuned on Magicoder-Evol-Instruct-110K. Left panel: learning as measured by accuracy on HumanEval. Right panel: forgetting as measured by the average of HellaSwag, ARC-Challenge and WinoGrande scores. The solid slateblue line shows that LoRA (r=256) learns as much as full finetuning, weight decay, and attention dropout, while forgetting much less."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            496,
+            131,
+            803,
+            337
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "4.5 How strongly does LoRA constrain the finetuning process?",
+        "text_level": 2,
+        "bbox": [
+            112,
+            454,
+            617,
+            470
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "In this section, we analyze Llama-2-7B models trained on the Magicoder-Evol-Instruct-110K dataset. We first compare the learning-forgetting tradeoffs between LoRA and classic regularization techniques, and then analyze the diversity of the generated text.",
+        "bbox": [
+            111,
+            481,
+            883,
+            529
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "LoRA forgets less than attention dropout and weight decay We compare LoRA $( r = 1 6 , 2 5 6$ training all modules) to weight decay (Goodfellow et al., 2016) with values $5 e ^ { - 5 } , 1 e ^ { - 4 }$ and attention dropout (Srivastava et al., 2014) with values 0.05, 0.1. Both regularization techniques appear to learn and forget as much as full finetuning, except that weight decay starts to generally deteriorate at longer training durations (epochs 8 and 16). LoRA, with the common r = 16, learns less and forgets less than all other models. LoRA r = 256, on the other hand, learns as much as the other methods while forgetting less.",
+        "bbox": [
+            109,
+            544,
+            885,
+            636
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "LoRA helps maintain diversity of token generations. We scrutinize the generated solution strings for HumanEval problems. We calculate the unique number of output strings out of 50 generations (for base model, full finetuning, and LoRA) serving as a coarse proxy for predictive diversity. In Figure 5 we separately show the results for correct and incorrect answers. As in the reinforcement learning from human feedback literature (Du et al., 2024; Sun et al., 2023), we find that full finetuning results in fewer unique generations (“distribution collapse”) compared to the base model, for both pass and fail generations, with LoRA in between the two. The above works also suggest that LoRA could even substitute a common Kullback-Leibler divergence term that keeps the probabilities of the generated text similar between the finetuned and base model. We reiterate that exact string matching between generations is not a sensitive metric of predictive diversity, as generations can slightly vary in format and remain functionally identical.",
+        "bbox": [
+            109,
+            651,
+            885,
+            805
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "4.6 Full finetuning on code and math does not learn low-rank perturbations",
+        "text_level": 2,
+        "bbox": [
+            111,
+            820,
+            710,
+            837
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "In this section, we seek to study whether we should expect low-rank training to be a good approximation to full finetuning, and if so, what is the necessary rank. Recall that full finetuning can be written as $W _ { \\mathrm { f i n e t u n e d } } = W _ { \\mathrm { p r e t r a i n e d } } + \\Delta { } ;$ here we compute the Singular Value Decomposition of all three terms in the equation. We focus on continued pretraining for code, where there are drastic differences between LoRA and full finetuning. We analyze checkpoints obtained at 0.25, 0.5, 1, 2, 4, 8, 16, and 20 billion training tokens.",
+        "bbox": [
+            111,
+            849,
+            885,
+            926
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "page_number",
+        "text": "9",
+        "bbox": [
+            493,
+            948,
+            504,
+            960
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "chart",
+        "img_path": "images/e347f018c890d5d47521d6ad82048a0451b9672b9d36726a0ef7c501f239009f.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 5: LoRA maintains output token diversity relative to full finetuning."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            158,
+            106,
+            839,
+            443
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "First, in Figure $\\mathrm { S 7 }$ we present results for the $W _ { q }$ projection at layer 26 of Llama-2-7B (with dimensions $d \\times d , d = 4 0 9 6 )$ . We show that the spectrum of the finetuned weight matrix is very similar to that of the base weight matrix, both decaying slowly and requiring keeping ≈ 50% of singular vectors (≈ 2000/4096) to explain 90% of the variance in the weight matrix. Critically, the difference $\\Delta$ also has a similar spectrum to the finetuned and base weight matrices (up to a multiplicative scaling). These results are in line with the analysis in Zeng & Lee (2024) showing that any transformer model can be well approximated with $r = d / 2$ Additionally, we suggest that there is nothing extraordinary about the full finetuning spectra; similar spectra can be achieved by adding low-magnitude Gaussian i.i.d noise to a weight matrix (Fig. S8).",
+        "bbox": [
+            111,
+            502,
+            885,
+            625
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "Next, we ask when during training does the perturbation become high rank, and whether it meaningfully varies between module types and layers. We estimate the rank needed to explain 90% of the variance in the matrix. The results appear in Figure 6. We find that: (1) The earliest checkpoint at 0.25B CPT tokens exhibits $\\Delta$ matrices with a rank that is 10 − 100× larger than typical LoRA ranks; (2) the rank of $\\Delta$ increases when trained on more data; (3) MLP modules have higher ranks compared to attention modules; (4) first and last layers seem to be lower rank compared to middle layers.",
+        "bbox": [
+            111,
+            630,
+            885,
+            723
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "4.7 Hyperparameter sensitivity analyses for LoRA",
+        "text_level": 2,
+        "bbox": [
+            111,
+            739,
+            514,
+            757
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "Our goal in this work was to optimally configure LoRA so that it has the best chances of matching full finetuning. This is nontrivial, as LoRA has a large number of hyperparameters to choose from: target modules, rank, scaling factors, and learning rates. We turn to analyze the importance of each, and provide some practical recommendations.",
+        "bbox": [
+            111,
+            768,
+            883,
+            830
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "First, we found that the choice $\\alpha = 2 r$ is crucial for high ranks. Most common packages, e.g. HuggingFace’s $\\mathtt { p e f t } , \\mathtt { 1 1 }$ scale the LoRA matrices by $\\alpha / r$ , effectively scaling down higher ranks (see also Kalajdzievski (2023)). One might think that high learning rate values may compensate for fixed low $\\alpha ^ { \\prime } \\mathrm { s } ,$ but doing so creates instabilities and often leads to inferior performance. To show this, we performed a joint hyperparameter",
+        "bbox": [
+            111,
+            837,
+            885,
+            898
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "page_footnote",
+        "text": "11https://huggingface.co/docs/peft/en/index",
+        "bbox": [
+            124,
+            910,
+            428,
+            924
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "page_number",
+        "text": "10",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "chart",
+        "img_path": "images/8c722b522e500e614ab18ac7c8cd97c61398cc02bf97c7849728748da9c494ec.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 6: Dynamics of rank for Llama-2-7B trained on the Starcoder (CPT) data. In each panel, the x-axis denotes layer number and the y-axis denotes rank needed to explain at least 90% of the variance (maximal dimensionality is 4096). Colors denote CPT tokens, with lighter colors trained for longer."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            158,
+            103,
+            841,
+            454
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "chart",
+        "img_path": "images/f518182fecf4fad673e9deada0cf3dc27adb671959e7ba3a18ba33295daec1bf.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            155,
+            536,
+            383,
+            750
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "chart",
+        "img_path": "images/9593590b7676304621ecc2846156f0aae270755b857fc363055884505dff20b0.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            385,
+            535,
+            614,
+            750
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "chart",
+        "img_path": "images/28951664acdee663ec3504ed85e2057d775dff1b3136434d35667aa82a428c4e.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 7: Targeting MLP or All modules is superior to training Attention modules alone. All Llama-2-7B checkpoints were trained on Magicoder for 1, 2 and 4 epochs with rank 16 (left), 64 (center) and 256 (right)."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            616,
+            536,
+            843,
+            750
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "sweep over α and learning rate for the Magicoder dataset training a r = 256 LoRA for 4 epochs (Fig. S3).   \nWe find that $\\alpha = 5 1 2$ does much better than 256 or 32 across all learning rates.",
+        "bbox": [
+            111,
+            840,
+            883,
+            872
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Next, to assess the relative contribution of target modules and rank, we trained Llama-2-7B models on 4 epochs of the Magicoder dataset, sweeping over target modules (“Attention”, “MLP”, and “All”, their union), ranks $( r = 1 6 , 6 4 , 2 5 6 )$ , setting $\\alpha = 2 r$ . Fig. 7 shows that HumanEval performance increases with rank, and that targeting just “Attention” underperforms both “MLP” and “All”, where in the latter, most gains are interestingly driven by the “MLP” modules. This is potential evidence that the MLP blocks are the primary loci for continual learning in LoRA, at least in our datasets.",
+        "bbox": [
+            111,
+            878,
+            885,
+            925
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "page_number",
+        "text": "11",
+        "bbox": [
+            488,
+            948,
+            508,
+            960
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            111,
+            103,
+            885,
+            150
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "For IFT, we find that LoRA is more sensitive to learning rates compared to full finetuning, and benefits from the highest learning rate that enables stable training for the chosen training duration (see Appendix Sec. B and Fig. S1). LoRA’s best learning rates should be set one order of magnitude higher than that of full finetuning, often ranging between $5 e ^ { - 5 }$ and $5 e ^ { - 4 }$ for these combinations of model architecture and dataset.",
+        "bbox": [
+            111,
+            156,
+            885,
+            218
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "In Appendix Sec. I, we benchmark throughput and peak GPU memory of different LoRA configurations, showing that for standard implementations and a fixed batch size, LoRA tends to train slower than full finetuning.",
+        "bbox": [
+            111,
+            224,
+            885,
+            270
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "To conclude, based on our main results and hyperparameter sweeps, we recommend: (a) using LoRA for instruction finetuning and not continued pretraining; (b) if GPU memory allows, targeting “All” transformer modules with a rank of 256, since ranks 16 − 64 tend not to suffice for code tasks; (c) using $\\alpha = 2 r$ , and (d) sweeping over learning rates between $[ 1 e - 5 , 5 e - 4 ]$ , picking the highest value that enables stable training.",
+        "bbox": [
+            111,
+            277,
+            885,
+            340
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "5 Related Work",
+        "text_level": 2,
+        "bbox": [
+            112,
+            364,
+            274,
+            381
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Extensions to LoRA LoRA has inspired many variants and extensions. One group of methods improves training with LoRA by focusing on initialization or scaling (Meng et al., 2024; Hayou et al., 2024; Li et al., 2023b; Kalajdzievski, 2023; Nikdan et al., 2024), sequential training procedures (Xia et al., 2024), or architectural modifications (Shi et al., 2024). Other works propose alternative low-rank approximations altogether (Liu et al., 2024; Zhao et al., 2024a; Jiang et al., 2024a; Kopiczko et al., 2023). In this study we chose to analyze the classic LoRA setup; while many of these proposed variations of LoRA seem promising, we leave a rigorous comparison of these techniques to future work.",
+        "bbox": [
+            111,
+            402,
+            887,
+            510
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Benchmarking LoRA vs. Full Finetuning The original LoRA paper Hu et al. (2021) reported that LoRA matched full finetuning performance for RoBERTa (Liu et al., 2019) on GLUE (Wang et al., 2018), GPT-2 on E2E NLG Challenge (Novikova et al., 2017), and GPT-3 on WikiSQL (Zhong et al., 2017), MNLI (Williams et al., 2017), and SAMSum (Gliwa et al., 2019). Many subsequent studies follow this template and report encoder model performance on tasks in GLUE such as SST-2 (Socher et al., 2013) and MNLI (Williams et al., 2017). Models such as RoBERTa are less than 340M parameters, however, and classification tasks such as MNLI are quite trivial for modern billion-parameter LLMs such as Llama-2-7B. Despite LoRA’s popularity, only a few studies have rigorously compared LoRA to full finetuning in this setting and with challenging domains such as code and math. Dettmers et al. (2024) for example found that QLoRA matched full finetuning MMLU (Hendrycks et al., 2020) performance when finetuning Llama-1 -7B, 13B, 33B and 65B on the Alpaca (Taori et al., 2023) and FLAN (Chung et al., 2024) datasets. Ivison et al. (2023) on the other hand found that QLoRA did not perform as well as full finetuning for Llama-2-7B, 13B and 70B models trained on the Tülü-v2-mix dataset when evaluated across MMLU, GSM8K, AlpacaEval (which uses LLM-as-a-judge; (Dubois et al., 2024)) and HumanEval. One recent notable study is Astraios, which found that LoRA at rank r = 8 performed worse than full finetuning on 8 datasets and across 4 model sizes (up to 16 billion parameters), on 5 representative code tasks (Zhuo et al., 2024). Our study corroborates these results and shows that with higher ranks and proper hyperparameter choices, LoRA can perform much better.",
+        "bbox": [
+            109,
+            532,
+            887,
+            791
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "The conclusions have also been mixed with regards to the practical details surrounding LoRA target modules and rank: Raschka (2023) and Dettmers et al. (2024) show that optimized LoRA configurations perform as well as full finetuning, and that performance is governed by choice of target modules but not rank.12 However, in that work, the scalar α was not modified with rank, and we found that increasing it to 2r was necessary to unlock improvements by rank. In contrast, Liu et al. (2024) shows that LoRA is sensitive to ranks. It is likely that some of these discrepancies are due to differences in finetuning datasets and evaluations.",
+        "bbox": [
+            111,
+            796,
+            887,
+            888
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "page_footnote",
+        "text": "12see also Zhang et al. (2024), who report some cases where performance does improve with rank.",
+        "bbox": [
+            124,
+            910,
+            725,
+            925
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "page_number",
+        "text": "12",
+        "bbox": [
+            488,
+            948,
+            509,
+            959
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Continual learning on code and math. A growing body of work investigates ways of specializing LLMs for code and math. In code, models such as StarCoder (Li et al., 2023a; Lozhkov et al., 2024), DeepSeek Coder (Guo et al., 2024), and SantaCoder (Allal et al., 2023) were pretrained from scratch on large-scale code datasets. Alternatively, some works start with a generic pretrained base model, and combine continued pretraining on large code datasets followed by IFT on code problems (usually with full finetuning), e.g., Codex (Chen et al., 2021), Code-Qwen (Bai et al., 2023), CodeLlama (Roziere et al., 2023). Some perform only IFT on top of a base model, like MagiCoder (Wei et al., 2023), or WizardCoder (Luo et al., 2023b). Other models such as OctoCoder (Muennighoff et al., 2023) perform IFT with LoRA.",
+        "bbox": [
+            111,
+            103,
+            887,
+            227
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Similarly, much recent work aims to improve mathematical capabilities. Models like DeepSeek Math (Shao et al., 2024) perform continued pretraining on top of a base model, while other methods focus on finetuning by generating high-quality synthetic math problems, scaling to millions of examples. Luo et al. (2023a) takes the Evol-Instruct approach to data generation (akin to the Magicoder dataset; Sec. 3.1) which it then uses to train reward models for instruction quality and solution correctness, which are in turn used for LLM finetuning. Other work develops Monte Carlo Tree Search methods to automatically supervise the intermediate reasoning steps while solving math problems (Luo et al., 2024), and Yue et al. (2024) generates questions and answers from the pretraining web corpus. Toshniwal et al. (2024) uses an LLM to synthesize Code-Interpreter-style solutions to the GSM8K and MATH benchmarks; the proposed solutions can be verified against the official solutions. Singh et al. (2023) iterate over this procedure multiple times (“Self-training”) using an expectation-maximization approach. All reviewed methods meaningfully improve math capabilities.",
+        "bbox": [
+            111,
+            231,
+            885,
+            400
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Learning-Forgetting tradeoffs Vu et al. (2022) shows that prompt tuning (Lester et al., 2021), another parameter-efficient finetuning method, can aid in mitigating forgetting for cross-lingual summarization tasks (using multilingual variants of the T5 model). With large Llama-style LLMs, it has been reported that code-finetuned LLMs lose some of their capabilities in language understanding and commonsense reasoning (Li et al., 2023a; Roziere et al., 2023; Wei et al., 2023). A common approach to mitigate forgetting involves “replaying” source-domain data during continual learning, which can be done by storing the data in a memory buffer, or generating it on the fly (Lesort et al., 2022; Scialom et al., 2022; Sun et al., 2019).",
+        "bbox": [
+            109,
+            416,
+            885,
+            523
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "6 Discussion",
+        "text_level": 2,
+        "bbox": [
+            112,
+            544,
+            254,
+            560
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Does the difference between LoRA and full finetuning change with model size? Studies in the past have hinted at a relationship between the effectiveness of finetuning and model size (Aghajanyan et al., 2020; Hu et al., 2021; Zhuo et al., 2024). While recent studies have successfully applied LoRA to 70B parameter models (Ivison et al., 2023; Yu et al., 2023; Niederfahrenhorst et al., 2023; Turgutlu, 2024), and previous work shows that techniques like prompt tuning become more effective for larger models (Vu et al., 2022), we leave a rigorous study of these intriguing scaling properties to future work.",
+        "bbox": [
+            111,
+            577,
+            885,
+            671
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Limitations of the spectral analysis. The observation that full finetuning tends to find high rank solutions does not rule out the possibility of low-rank solutions; rather, it shows that they are not typically found. An alternative interpretation is that the rank needed to reconstruct the weight matrix is higher than the rank needed for a downstream task. We also only presented SVD analysis for the continued pretraining setting. It is possible that a similar analysis for the instruction finetuning setting would reveal that the full finetuning does not tend to be as high rank.",
+        "bbox": [
+            111,
+            688,
+            885,
+            780
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "7 Conclusion",
+        "text_level": 2,
+        "bbox": [
+            112,
+            799,
+            256,
+            816
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "This work sheds light on the downstream performance of 7 billion parameter LLMs trained with LoRA and full finetuning. Unlike most prior work, we use domain-specific datasets in code and math, associated with sensitive evaluation metrics. We show that LoRA, with commonly used low-rank settings, underperforms full finetuning across domains. We also show that LoRA keeps the finetuned model’s behavior close to that of the base model, with diminished source-domain forgetting and more diverse generations at inference time. We show that LoRA mitigates forgetting more than classical regularization techniques, and also show that full finetuning finds weight perturbations that are far from being low-rank. We conclude by analyzing LoRA’s increased sensitivity to hyperparameters and highlighting best practices.",
+        "bbox": [
+            111,
+            833,
+            885,
+            926
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "page_number",
+        "text": "13",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            111,
+            103,
+            883,
+            135
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Acknowledgements",
+        "text_level": 2,
+        "bbox": [
+            112,
+            148,
+            272,
+            165
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "We would like to thank the editor and the three anonymous reviewers who provided high-quality feedback on this work. We are also grateful to Daniel Han and Damjan Kalajdzievski for carefully reading our work and pointing out the importance of setting α = 2r for training with high ranks.",
+        "bbox": [
+            111,
+            175,
+            883,
+            222
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Author Contributions",
+        "text_level": 2,
+        "bbox": [
+            112,
+            236,
+            282,
+            251
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "D.B. led this project by developing code, running experiments, analyzing results, and writing the manuscript. J.P. ran experiments and assisted in the writing of the manuscript. J.G.O. wrote code and ran experiments. P.G. advised the SVD analysis, C.J. ran experiments, and D.K. wrote code. M.P., S.H., V.C., J.F., C.B., and J.P.C. advised this work.",
+        "bbox": [
+            111,
+            261,
+            885,
+            321
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "page_number",
+        "text": "14",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "References",
+        "text_level": 2,
+        "bbox": [
+            112,
+            101,
+            225,
+            118
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Armen Aghajanyan, Luke Zettlemoyer, and Sonal Gupta. Intrinsic dimensionality explains the effectiveness of language model fine-tuning. arXiv preprint arXiv:2012.13255, 2020.",
+            "Loubna Ben Allal, Raymond Li, Denis Kocetkov, Chenghao Mou, Christopher Akiki, Carlos Munoz Ferrandis, Niklas Muennighoff, Mayank Mishra, Alex Gu, Manan Dey, et al. Santacoder: don’t reach for the stars! arXiv preprint arXiv:2301.03988, 2023.",
+            "Jinze Bai, Shuai Bai, Yunfei Chu, Zeyu Cui, Kai Dang, Xiaodong Deng, Yang Fan, Wenbin Ge, Yu Han, Fei Huang, et al. Qwen technical report. arXiv preprint arXiv:2309.16609, 2023.",
+            "Loubna Ben Allal, Niklas Muennighoff, Logesh Kumar Umapathi, Ben Lipkin, and Leandro von Werra. A framework for the evaluation of code generation models. https://github.com/bigcode-project/ bigcode-evaluation-harness, 2022.",
+            "Sahil Chaudhary. Code alpaca: An instruction-following llama model for code generation. https://github. com/sahil280114/codealpaca, 2023.",
+            "Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, Alex Ray, Raul Puri, Gretchen Krueger, Michael Petrov, Heidy Khlaaf, Girish Sastry, Pamela Mishkin, Brooke Chan, Scott Gray, Nick Ryder, Mikhail Pavlov, Alethea Power, Lukasz Kaiser, Mohammad Bavarian, Clemens Winter, Philippe Tillet, Felipe Petroski Such, Dave Cummings, Matthias Plappert, Fotios Chantzis, Elizabeth Barnes, Ariel Herbert-Voss, William Hebgen Guss, Alex Nichol, Alex Paino, Nikolas Tezak, Jie Tang, Igor Babuschkin, Suchir Balaji, Shantanu Jain, William Saunders, Christopher Hesse, Andrew N. Carr, Jan Leike, Josh Achiam, Vedant Misra, Evan Morikawa, Alec Radford, Matthew Knight, Miles Brundage, Mira Murati, Katie Mayer, Peter Welinder, Bob McGrew, Dario Amodei, Sam McCandlish, Ilya Sutskever, and Wojciech Zaremba. Evaluating large language models trained on code, 2021.",
+            "Hyung Won Chung, Le Hou, Shayne Longpre, Barret Zoph, Yi Tay, William Fedus, Yunxuan Li, Xuezhi Wang, Mostafa Dehghani, Siddhartha Brahma, et al. Scaling instruction-finetuned language models. Journal of Machine Learning Research, 25(70):1–53, 2024.",
+            "Peter Clark, Isaac Cowhey, Oren Etzioni, Tushar Khot, Ashish Sabharwal, Carissa Schoenick, and Oyvind Tafjord. Think you have solved question answering? try arc, the ai2 reasoning challenge. ArXiv, abs/1803.05457, 2018. URL https://api.semanticscholar.org/CorpusID:3922816.",
+            "Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, et al. Training verifiers to solve math word problems. arXiv preprint arXiv:2110.14168, 2021.",
+            "Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer. Qlora: Efficient finetuning of quantized llms. Advances in Neural Information Processing Systems, 36, 2024.",
+            "Jeremy Dohmann. Blazingly fast llm evaluation for in-context learning, February 2023. URL https: //www.databricks.com/blog/llm-evaluation-for-icl. Blog post, Mosaic AI Research.",
+            "Yuqing Du, Alexander Havrilla, Sainbayar Sukhbaatar, Pieter Abbeel, and Roberta Raileanu. A study on improving reasoning in language models. In I Can’t Believe It’s Not Better Workshop: Failure Modes in the Age of Foundation Models, 2024. URL https://openreview.net/forum?id=tCZFmDyPFm.",
+            "Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Amy Yang, Angela Fan, et al. The llama 3 herd of models. arXiv preprint arXiv:2407.21783, 2024.",
+            "Yann Dubois, Chen Xuechen Li, Rohan Taori, Tianyi Zhang, Ishaan Gulrajani, Jimmy Ba, Carlos Guestrin, Percy S Liang, and Tatsunori B Hashimoto. Alpacafarm: A simulation framework for methods that learn from human feedback. Advances in Neural Information Processing Systems, 36, 2024."
+        ],
+        "bbox": [
+            114,
+            126,
+            883,
+            157
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "page_number",
+        "text": "15",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Robert M French. Catastrophic forgetting in connectionist networks. Trends in cognitive sciences, 3(4): 128–135, 1999.",
+            "Leo Gao, Jonathan Tow, Baber Abbasi, Stella Biderman, Sid Black, Anthony DiPofi, Charles Foster, Laurence Golding, Jeffrey Hsu, Alain Le Noac’h, Haonan Li, Kyle McDonell, Niklas Muennighoff, Chris Ociepa, Jason Phang, Laria Reynolds, Hailey Schoelkopf, Aviya Skowron, Lintang Sutawika, Eric Tang, Anish Thite, Ben Wang, Kevin Wang, and Andy Zou. A framework for few-shot language model evaluation, 12 2023. URL https://zenodo.org/records/10256836.",
+            "Sreyan Ghosh, Chandra Kiran Reddy Evuru, Sonal Kumar, Deepali Aneja, Zeyu Jin, Ramani Duraiswami, Dinesh Manocha, et al. A closer look at the limitations of instruction tuning. arXiv preprint arXiv:2402.05119, 2024.",
+            "Bogdan Gliwa, Iwona Mochol, Maciej Biesek, and Aleksander Wawer. Samsum corpus: A human-annotated dialogue dataset for abstractive summarization. arXiv preprint arXiv:1911.12237, 2019.",
+            "Ian Goodfellow, Yoshua Bengio, and Aaron Courville. Deep learning. MIT press, 2016.",
+            "Ian J Goodfellow, Mehdi Mirza, Da Xiao, Aaron Courville, and Yoshua Bengio. An empirical investigation of catastrophic forgetting in gradient-based neural networks. arXiv preprint arXiv:1312.6211, 2013.",
+            "Daya Guo, Qihao Zhu, Dejian Yang, Zhenda Xie, Kai Dong, Wentao Zhang, Guanting Chen, Xiao Bi, Y Wu, YK Li, et al. Deepseek-coder: When the large language model meets programming–the rise of code intelligence. arXiv preprint arXiv:2401.14196, 2024.",
+            "Soufiane Hayou, Nikhil Ghosh, and Bin Yu. Lora+: Efficient low rank adaptation of large models. arXiv preprint arXiv:2402.12354, 2024.",
+            "Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Steinhardt. Measuring massive multitask language understanding. arXiv preprint arXiv:2009.03300, 2020.",
+            "Dan Hendrycks, Collin Burns, Saurav Kadavath, Akul Arora, Steven Basart, Eric Tang, Dawn Song, and Jacob Steinhardt. Measuring mathematical problem solving with the math dataset. arXiv preprint arXiv:2103.03874, 2021.",
+            "Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. Lora: Low-rank adaptation of large language models. arXiv preprint arXiv:2106.09685, 2021.",
+            "Hamish Ivison, Yizhong Wang, Valentina Pyatkin, Nathan Lambert, Matthew Peters, Pradeep Dasigi, Joel Jang, David Wadden, Noah A Smith, Iz Beltagy, et al. Camels in a changing climate: Enhancing lm adaptation with tulu 2. arXiv preprint arXiv:2311.10702, 2023.",
+            "Ting Jiang, Shaohan Huang, Shengyue Luo, Zihan Zhang, Haizhen Huang, Furu Wei, Weiwei Deng, Feng Sun, Qi Zhang, Deqing Wang, et al. Mora: High-rank updating for parameter-efficient fine-tuning. arXiv preprint arXiv:2405.12130, 2024a.",
+            "Weisen Jiang, Han Shi, Longhui Yu, Zhengying Liu, Yu Zhang, Zhenguo Li, and James T. Kwok. Forwardbackward reasoning in large language models for mathematical verification, 2024b.",
+            "Damjan Kalajdzievski. A rank stabilization scaling factor for fine-tuning with lora. arXiv preprint arXiv:2312.03732, 2023.",
+            "Damjan Kalajdzievski. Scaling laws for forgetting when fine-tuning large language models. arXiv preprint arXiv:2401.05605, 2024.",
+            "Anat Kleiman, Jonathan Frankle, Sham M Kakade, and Mansheej Paul. Predicting task forgetting in large language models, 2023. URL https://openreview.net/pdf?id=0BMg0OgNTP."
+        ],
+        "bbox": [
+            112,
+            103,
+            885,
+            133
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "page_number",
+        "text": "16",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Dawid Jan Kopiczko, Tijmen Blankevoort, and Yuki Markus Asano. Vera: Vector-based random matrix adaptation. arXiv preprint arXiv:2310.11454, 2023.",
+            "Timothée Lesort, Oleksiy Ostapenko, Diganta Misra, Md Rifat Arefin, Pau Rodríguez, Laurent Charlin, and Irina Rish. Challenging common assumptions about catastrophic forgetting. arXiv preprint arXiv:2207.04543, 2022.",
+            "Brian Lester, Rami Al-Rfou, and Noah Constant. The power of scale for parameter-efficient prompt tuning. arXiv preprint arXiv:2104.08691, 2021.",
+            "Chunyuan Li, Heerad Farkhoor, Rosanne Liu, and Jason Yosinski. Measuring the intrinsic dimension of objective landscapes. arXiv preprint arXiv:1804.08838, 2018.",
+            "Raymond Li, Loubna Ben Allal, Yangtian Zi, Niklas Muennighoff, Denis Kocetkov, Chenghao Mou, Marc Marone, Christopher Akiki, Jia Li, Jenny Chim, et al. Starcoder: may the source be with you! arXiv preprint arXiv:2305.06161, 2023a.",
+            "Yixiao Li, Yifan Yu, Chen Liang, Pengcheng He, Nikos Karampatziakis, Weizhu Chen, and Tuo Zhao. Loftq: Lora-fine-tuning-aware quantization for large language models. arXiv preprint arXiv:2310.08659, 2023b.",
+            "Shih-Yang Liu, Chien-Yi Wang, Hongxu Yin, Pavlo Molchanov, Yu-Chiang Frank Wang, Kwang-Ting Cheng, and Min-Hung Chen. Dora: Weight-decomposed low-rank adaptation. arXiv preprint arXiv:2402.09353, 2024.",
+            "Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettlemoyer, and Veselin Stoyanov. Roberta: A robustly optimized bert pretraining approach. arXiv preprint arXiv:1907.11692, 2019.",
+            "Anton Lozhkov, Raymond Li, Loubna Ben Allal, Federico Cassano, Joel Lamy-Poirier, Nouamane Tazi, Ao Tang, Dmytro Pykhtar, Jiawei Liu, Yuxiang Wei, et al. Starcoder 2 and the stack v2: The next generation. arXiv preprint arXiv:2402.19173, 2024.",
+            "Haipeng Luo, Qingfeng Sun, Can Xu, Pu Zhao, Jianguang Lou, Chongyang Tao, Xiubo Geng, Qingwei Lin, Shifeng Chen, and Dongmei Zhang. Wizardmath: Empowering mathematical reasoning for large language models via reinforced evol-instruct, 2023a. URL https://arxiv.org/abs/2308.09583.",
+            "Liangchen Luo, Yinxiao Liu, Rosanne Liu, Samrat Phatale, Harsh Lara, Yunxuan Li, Lei Shu, Yun Zhu, Lei Meng, Jiao Sun, and Abhinav Rastogi. Improve mathematical reasoning in language models by automated process supervision, 2024. URL https://arxiv.org/abs/2406.06592.",
+            "Ziyang Luo, Can Xu, Pu Zhao, Qingfeng Sun, Xiubo Geng, Wenxiang Hu, Chongyang Tao, Jing Ma, Qingwei Lin, and Daxin Jiang. Wizardcoder: Empowering code large language models with evol-instruct. arXiv preprint arXiv:2306.08568, 2023b.",
+            "Michael McCloskey and Neal J Cohen. Catastrophic interference in connectionist networks: The sequential learning problem. In Psychology of learning and motivation, volume 24, pp. 109–165. Elsevier, 1989.",
+            "Fanxu Meng, Zhaohui Wang, and Muhan Zhang. Pissa: Principal singular values and singular vectors adaptation of large language models. arXiv preprint arXiv:2404.02948, 2024.",
+            "Niklas Muennighoff, Qian Liu, Armel Zebaze, Qinkai Zheng, Binyuan Hui, Terry Yue Zhuo, Swayam Singh, Xiangru Tang, Leandro Von Werra, and Shayne Longpre. Octopack: Instruction tuning code large language models. arXiv preprint arXiv:2308.07124, 2023.",
+            "Artur Niederfahrenhorst, Kourosh Hakhamaneshi, and Rehaan Ahmad. Fine-tuning llms: Lora or fullparameter? an in-depth analysis with llama 2, September 2023. URL https://www.anyscale.com/blog/ fine-tuning-llms-lora-or-full-parameter-an-in-depth-analysis-with-llama-2. Blog post.",
+            "Mahdi Nikdan, Soroush Tabesh, and Dan Alistarh. Rosa: Accurate parameter-efficient fine-tuning via robust adaptation. arXiv preprint arXiv:2401.04679, 2024."
+        ],
+        "bbox": [
+            112,
+            103,
+            885,
+            135
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "page_number",
+        "text": "17",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Jekaterina Novikova, Ondřej Dušek, and Verena Rieser. The e2e dataset: New challenges for end-to-end generation. arXiv preprint arXiv:1706.09254, 2017.",
+            "Keiran Paster, Marco Dos Santos, Zhangir Azerbayev, and Jimmy Ba. Openwebmath: An open dataset of high-quality mathematical web text. arXiv preprint arXiv:2310.06786, 2023.",
+            "Samyam Rajbhandari, Jeff Rasley, Olatunji Ruwase, and Yuxiong He. Zero: Memory optimizations toward training trillion parameter models. In SC20: International Conference for High Performance Computing, Networking, Storage and Analysis, pp. 1–16. IEEE, 2020.",
+            "Sebastian Raschka. Practical tips for finetuning llms using lora (low-rank adaptation), 2023. URL https: //magazine.sebastianraschka.com/p/practical-tips-for-finetuning-llms.",
+            "Baptiste Roziere, Jonas Gehring, Fabian Gloeckle, Sten Sootla, Itai Gat, Xiaoqing Ellen Tan, Yossi Adi, Jingyu Liu, Tal Remez, Jérémy Rapin, et al. Code llama: Open foundation models for code. arXiv preprint arXiv:2308.12950, 2023.",
+            "Keisuke Sakaguchi, Ronan Le Bras, Chandra Bhagavatula, and Yejin Choi. Winogrande: An adversarial winograd schema challenge at scale, 2019.",
+            "Thomas Scialom, Tuhin Chakrabarty, and Smaranda Muresan. Fine-tuned language models are continual learners. arXiv preprint arXiv:2205.12393, 2022.",
+            "Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, Y. K. Li, Y. Wu, and Daya Guo. Deepseekmath: Pushing the limits of mathematical reasoning in open language models, 2024. URL https://arxiv.org/abs/2402.03300.",
+            "Shuhua Shi, Shaohan Huang, Minghui Song, Zhoujun Li, Zihan Zhang, Haizhen Huang, Furu Wei, Weiwei Deng, Feng Sun, and Qi Zhang. Reslora: Identity residual mapping in low-rank adaption. arXiv preprint arXiv:2402.18039, 2024.",
+            "Avi Singh, John D Co-Reyes, Rishabh Agarwal, Ankesh Anand, Piyush Patil, Peter J Liu, James Harrison, Jaehoon Lee, Kelvin Xu, Aaron Parisi, et al. Beyond human data: Scaling self-training for problem-solving with language models. arXiv preprint arXiv:2312.06585, 2023.",
+            "Richard Socher, Alex Perelygin, Jean Wu, Jason Chuang, Christopher D Manning, Andrew Y Ng, and Christopher Potts. Recursive deep models for semantic compositionality over a sentiment treebank. In Proceedings of the 2013 conference on empirical methods in natural language processing, pp. 1631–1642, 2013.",
+            "Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov. Dropout: a simple way to prevent neural networks from overfitting. The journal of machine learning research, 15(1): 1929–1958, 2014.",
+            "Fan-Keng Sun, Cheng-Hao Ho, and Hung-Yi Lee. Lamol: Language modeling for lifelong language learning. arXiv preprint arXiv:1909.03329, 2019.",
+            "Simeng Sun, Dhawal Gupta, and Mohit Iyyer. Exploring the impact of low-rank adaptation on the performance, efficiency, and regularization of rlhf, 2023.",
+            "Rohan Taori, Ishaan Gulrajani, Tianyi Zhang, Yann Dubois, Xuechen Li, Carlos Guestrin, Percy Liang, and Tatsunori B Hashimoto. Stanford alpaca: An instruction-following llama model, 2023.",
+            "Shubham Toshniwal, Ivan Moshkov, Sean Narenthiran, Daria Gitman, Fei Jia, and Igor Gitman. Openmathinstruct-1: A 1.8 million math instruction tuning dataset, 2024. URL https://arxiv.org/abs/ 2402.10176.",
+            "Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, et al. Llama 2: Open foundation and fine-tuned chat models. arXiv preprint arXiv:2307.09288, 2023."
+        ],
+        "bbox": [
+            112,
+            103,
+            883,
+            135
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "page_number",
+        "text": "18",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Kerem Turgutlu. Efficient finetuning of llama 3 with fsdp qdora, April 2024. URL https://www.answer.ai/ posts/2024-04-26-fsdp-qdora-llama3.html. Blog post.",
+            "Tu Vu, Aditya Barua, Brian Lester, Daniel Cer, Mohit Iyyer, and Noah Constant. Overcoming catastrophic forgetting in zero-shot cross-lingual generation. arXiv preprint arXiv:2205.12647, 2022.",
+            "Alex Wang, Amanpreet Singh, Julian Michael, Felix Hill, Omer Levy, and Samuel R Bowman. Glue: A multitask benchmark and analysis platform for natural language understanding. arXiv preprint arXiv:1804.07461, 2018.",
+            "Liyuan Wang, Xingxing Zhang, Hang Su, and Jun Zhu. A comprehensive survey of continual learning: Theory, method and application, 2024.",
+            "Jason Wei, Maarten Bosma, Vincent Y Zhao, Kelvin Guu, Adams Wei Yu, Brian Lester, Nan Du, Andrew M Dai, and Quoc V Le. Finetuned language models are zero-shot learners. arXiv preprint arXiv:2109.01652, 2021.",
+            "Yuxiang Wei, Zhe Wang, Jiawei Liu, Yifeng Ding, and Lingming Zhang. Magicoder: Source code is all you need. arXiv preprint arXiv:2312.02120, 2023.",
+            "Yixuan Weng, Minjun Zhu, Fei Xia, Bin Li, Shizhu He, Shengping Liu, Bin Sun, Kang Liu, and Jun Zhao. Large language models are better reasoners with self-verification. arXiv preprint arXiv:2212.09561, 2022.",
+            "Adina Williams, Nikita Nangia, and Samuel R Bowman. A broad-coverage challenge corpus for sentence understanding through inference. arXiv preprint arXiv:1704.05426, 2017.",
+            "Wenhan Xia, Chengwei Qin, and Elad Hazan. Chain of lora: Efficient fine-tuning of language models via residual learning. arXiv preprint arXiv:2401.04151, 2024.",
+            "Longhui Yu, Weisen Jiang, Han Shi, Jincheng Yu, Zhengying Liu, Yu Zhang, James T Kwok, Zhenguo Li, Adrian Weller, and Weiyang Liu. Metamath: Bootstrap your own mathematical questions for large language models. arXiv preprint arXiv:2309.12284, 2023.",
+            "Xiang Yue, Tuney Zheng, Ge Zhang, and Wenhu Chen. Mammoth2: Scaling instructions from the web, 2024. URL https://arxiv.org/abs/2405.03548.",
+            "Rowan Zellers, Ari Holtzman, Yonatan Bisk, Ali Farhadi, and Yejin Choi. Hellaswag: Can a machine really finish your sentence?, 2019.",
+            "Yuchen Zeng and Kangwook Lee. The expressive power of low-rank adaptation, 2024. URL https: //arxiv.org/abs/2310.17513.",
+            "Biao Zhang, Zhongtao Liu, Colin Cherry, and Orhan Firat. When scaling meets llm finetuning: The effect of data, model and finetuning method. arXiv preprint arXiv:2402.17193, 2024.",
+            "Jiawei Zhao, Zhenyu Zhang, Beidi Chen, Zhangyang Wang, Anima Anandkumar, and Yuandong Tian. Galore: Memory-efficient llm training by gradient low-rank projection. arXiv preprint arXiv:2403.03507, 2024a.",
+            "Justin Zhao, Timothy Wang, Wael Abid, Geoffrey Angus, Arnav Garg, Jeffery Kinnison, Alex Sherstinsky, Piero Molino, Travis Addair, and Devvret Rishi. Lora land: 310 fine-tuned llms that rival gpt-4, a technical report. arXiv preprint arXiv:2405.00732, 2024b.",
+            "Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zi Lin, Zhuohan Li, Dacheng Li, Eric Xing, et al. Judging llm-as-a-judge with mt-bench and chatbot arena. Advances in Neural Information Processing Systems, 36, 2024.",
+            "Victor Zhong, Caiming Xiong, and Richard Socher. Seq2sql: Generating structured queries from natural language using reinforcement learning. arXiv preprint arXiv:1709.00103, 2017.",
+            "Terry Yue Zhuo, Armel Zebaze, Nitchakarn Suppattarachai, Leandro von Werra, Harm de Vries, Qian Liu, and Niklas Muennighoff. Astraios: Parameter-efficient instruction tuning code large language models. arXiv preprint arXiv:2401.00788, 2024."
+        ],
+        "bbox": [
+            112,
+            103,
+            885,
+            135
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "page_number",
+        "text": "19",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "Appendix",
+        "text_level": 2,
+        "bbox": [
+            112,
+            101,
+            209,
+            119
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "A Experimental Setup",
+        "text_level": 2,
+        "bbox": [
+            112,
+            133,
+            336,
+            154
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "LoRA configuration for all experiments.",
+        "text_level": 2,
+        "bbox": [
+            111,
+            166,
+            446,
+            183
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "All experiments were done with the Databricks MosaicML composer, streaming and llm-foundry libraries in conjunction with the HuggingFace peft library on 32×H100-80GB GPUs. All experiments in the main text used the LionW optimizer (Chen et al., 2021) instead of the AdamW optimizer.",
+        "bbox": [
+            111,
+            190,
+            885,
+            236
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "We targeted all trainable modules inside each of the L Llama transformer blocks: $\\{ W _ { q } ^ { ( l ) } , \\tilde { W _ { k } ^ { ( l ) } } , W _ { v } ^ { ( l ) } , W _ { o } ^ { ( l ) } , W _ { \\mathrm { g a t e } } ^ { ( l ) } , W _ { \\mathrm { u p } } ^ { ( l ) } , W _ { \\mathrm { d o w n } } ^ { ( l ) } \\} _ { l = 1 } ^ { L }$ We used ranks of r = 16, 64, 256 and set $\\alpha \\ = \\ 2 r .$ to achieve a constant scaling factor $\\gamma _ { r } = 2$ across ranks. We use lora\\_dropout=0.05.",
+        "bbox": [
+            111,
+            242,
+            885,
+            290
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "For both the Code CPT and Math CPT settings, we train the model once for 20B tokens. We then perform individual cooldowns using intermediate checkpoints as follows: We set a target max training duration (e.g. 8 billion tokens), and define the last 20% of max training duration as the cooldown period. We then retrain from the latest available checkpoint prior to the cooldown period.",
+        "bbox": [
+            111,
+            296,
+            885,
+            359
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "In all four scenarios below, we use the Llama-2-7B base model meta-llama/Llama-2-7b-hf13. For the CPT runs, we use the meta-llama/Llama-2-7b-hf tokenizer, while for the IFT runs we use the meta-llama/Llama-2-7b-chat-hf tokenizer.14",
+        "bbox": [
+            111,
+            364,
+            885,
+            410
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Code CPT Llama-2-7B trained on the StarCoder-Python dataset.",
+        "bbox": [
+            112,
+            417,
+            599,
+            434
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• seq\\_len: 4096",
+        "bbox": [
+            151,
+            449,
+            287,
+            464
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• optimizer: decoupled\\_lionw (betas=[0.9, 0.95])",
+        "bbox": [
+            151,
+            464,
+            524,
+            479
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• learning\\_rate: 1.0e-05 for LoRA and Full Finetuning",
+        "bbox": [
+            151,
+            479,
+            573,
+            494
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• scheduler: inv\\_sqrt\\_with\\_warmup (t\\_scale=1000ba, t\\_warmup=1000ba, t\\_cooldown=5086ba, alpha\\_f\\_decay=1, alpha\\_f\\_cooldown=0). We note that this ends up looking very much like a trapezoidal schedule.",
+        "bbox": [
+            151,
+            494,
+            885,
+            540
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• weight\\_decay: 1.0e-06",
+        "bbox": [
+            153,
+            540,
+            352,
+            555
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• precision: amp\\_bf16",
+        "bbox": [
+            153,
+            556,
+            338,
+            569
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• global\\_train\\_batch\\_size: 192",
+        "bbox": [
+            151,
+            570,
+            421,
+            584
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• device\\_train\\_microbatch\\_size: 6",
+        "bbox": [
+            153,
+            585,
+            452,
+            599
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• gradient\\_clipping: norm (threshold=1)",
+        "bbox": [
+            151,
+            601,
+            477,
+            616
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• num\\_gpus: 32",
+        "bbox": [
+            153,
+            616,
+            295,
+            631
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Math CPT. Llama-2-7B trained on the OpenWebMath dataset.",
+        "bbox": [
+            111,
+            646,
+            581,
+            661
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• max\\_seq\\_len: 4096",
+        "bbox": [
+            151,
+            679,
+            336,
+            693
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• optimizer: decoupled\\_lionw (betas=[0.9, 0.95])",
+        "bbox": [
+            151,
+            694,
+            524,
+            708
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• learning\\_rate: 1.0e-05 for full finetuning, 4.0e-05 for LoRA",
+        "bbox": [
+            151,
+            708,
+            616,
+            723
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• scheduler: inv\\_sqrt\\_with\\_warmup (t\\_scale=1000ba, t\\_warmup=1000ba, t\\_cooldown=5086ba, alpha\\_f\\_decay=1, alpha\\_f\\_cooldown=0). We note that this ends up looking very much like a trapezoidal schedule.",
+        "bbox": [
+            151,
+            723,
+            885,
+            768
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• weight\\_decay: 0",
+        "bbox": [
+            153,
+            770,
+            312,
+            784
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• precision: amp\\_bf16",
+        "bbox": [
+            153,
+            785,
+            338,
+            799
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• global\\_train\\_batch\\_size: 192",
+        "bbox": [
+            153,
+            799,
+            421,
+            813
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• device\\_train\\_microbatch\\_size: 6",
+        "bbox": [
+            153,
+            814,
+            452,
+            829
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• gradient\\_clipping: norm (threshold=1)",
+        "bbox": [
+            153,
+            829,
+            478,
+            844
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• num\\_gpus: 32",
+        "bbox": [
+            153,
+            845,
+            295,
+            859
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Code IFT: Finetuning Llama-2-7B on the Magicoder-Evol-Instruct-110K dataset",
+        "bbox": [
+            112,
+            876,
+            705,
+            891
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "page_footnote",
+        "text": "13https://huggingface.co/meta-llama/Llama-2-7b-hf",
+        "bbox": [
+            124,
+            898,
+            475,
+            911
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "page_footnote",
+        "text": "14https://huggingface.co/meta-llama/Llama-2-7b-chat-hf",
+        "bbox": [
+            125,
+            910,
+            509,
+            924
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "page_number",
+        "text": "20",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "• max\\_seq\\_len: 4096",
+        "bbox": [
+            151,
+            104,
+            338,
+            118
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• optimizer: decoupled\\_lionw (betas=[0.9, 0.95])",
+        "bbox": [
+            151,
+            118,
+            524,
+            133
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• learning\\_rate: 2e-4 for rank r = 16, 64 and 1e-4 for $r = 2 5 6 ~ \\alpha = 2 r = 5 1 2$ (due to instabilities/loss spikes at 2e-4)",
+        "bbox": [
+            151,
+            133,
+            883,
+            164
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• scheduler: cosine\\_with\\_warmup (alpha\\_f=0.01, t\\_warmup=0.1dur)",
+        "bbox": [
+            151,
+            164,
+            681,
+            179
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• weight\\_decay: 0",
+        "bbox": [
+            153,
+            179,
+            313,
+            194
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• precision: amp\\_bf16",
+        "bbox": [
+            153,
+            194,
+            338,
+            208
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• global\\_train\\_batch\\_size: 192",
+        "bbox": [
+            151,
+            209,
+            421,
+            224
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• device\\_train\\_microbatch\\_size: 6",
+        "bbox": [
+            153,
+            224,
+            452,
+            239
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• gradient\\_clipping: norm (threshold=1)",
+        "bbox": [
+            151,
+            239,
+            478,
+            255
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• num\\_gpus: 32",
+        "bbox": [
+            153,
+            256,
+            295,
+            270
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "Math IFT: Finetuning Llama-2-7B on the MetaMathQA dataset",
+        "text_level": 2,
+        "bbox": [
+            111,
+            291,
+            591,
+            306
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• seq\\_len: 1024",
+        "bbox": [
+            151,
+            332,
+            287,
+            345
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• optimizer: decoupled\\_lionw (betas=[0.9, 0.95])",
+        "bbox": [
+            151,
+            345,
+            524,
+            361
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• learning\\_rate: Full finetuning: 1e-5, LoRA: 1e-4 for $r = 1 6 , 6 4 .$ , 5e-5 for $r = 2 5 6$ due to instabilities.",
+        "bbox": [
+            151,
+            361,
+            885,
+            376
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• scheduler: cosine\\_with\\_warmup (alpha\\_f=0.01, t\\_warmup=0.1dur)",
+        "bbox": [
+            151,
+            376,
+            681,
+            392
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• weight\\_decay: 0",
+        "bbox": [
+            153,
+            392,
+            313,
+            406
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• precision: amp\\_bf16",
+        "bbox": [
+            153,
+            407,
+            338,
+            421
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• global\\_train\\_batch\\_size: 768",
+        "bbox": [
+            153,
+            421,
+            421,
+            436
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• device\\_train\\_microbatch\\_size: 24",
+        "bbox": [
+            153,
+            436,
+            460,
+            452
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• gradient\\_clipping: norm (threshold=1)",
+        "bbox": [
+            151,
+            452,
+            477,
+            467
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "• num\\_gpus: 32",
+        "bbox": [
+            153,
+            468,
+            295,
+            483
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "A.1 Training the input and output embedding layers.",
+        "text_level": 2,
+        "bbox": [
+            111,
+            506,
+            532,
+            522
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "Vanilla LoRA and other popular methods such as QLoRA (Dettmers et al., 2024) often do not train the input and output embedding layers. Recent open-source work,15 on the other hand, shows that it might be beneficial to supplement LoRA with full finetuning of these two modules (additional ≈ 200M parameters for a 7B model). We view this approach as a hybrid of LoRA and full finetuning, and therefore leave its empirical investigation for future work. Moreover, this hybrid approach involves further hyperparameter optimization: the input and output layers require tuning their own separate learning rates, which should typically be 2-10× smaller than the LoRA learning rates (training with a single learning rate results in instabilities).",
+        "bbox": [
+            109,
+            535,
+            887,
+            643
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "B Learning rate searches",
+        "text_level": 2,
+        "bbox": [
+            111,
+            665,
+            367,
+            683
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "We perform a learning rate sensitivity analysis for Llama-2-7B, trained for two epochs on the code and math IFT datasets, and followed by HumanEval and GSM8K evaluation, respectively. Fig. S1 shows that LoRA improves monotonically with learning rate up to a value at which training diverges, with best learning rates of $5 e ^ { - 4 }$ for code and $2 e ^ { - 4 }$ for math.",
+        "bbox": [
+            109,
+            700,
+            883,
+            761
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "On both datasets, these best LoRA learning rates are underperformed by four alternative full finetuning learning rates. The best full finetuning learning rates are $5 e ^ { - 5 }$ and $1 e ^ { - 5 }$ , respectively, an order of magnitude smaller than LoRA. For LoRA, we cannot find alternative learning rates that achieve at least 90% of the best learning rate’s performance. For full finetuning, there are two viable alternative learning rates for code and three for math.",
+        "bbox": [
+            111,
+            767,
+            885,
+            844
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "Note that in these experiments, the LoRA models target all modules but the $W _ { \\mathrm { g a t e } } ,$ with $\\alpha = 3 2$ which should preferably be higher for $r = 6 4$ . This explains the slight differences between Figures S1 and S3.",
+        "bbox": [
+            111,
+            852,
+            883,
+            882
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "page_number",
+        "text": "21",
+        "bbox": [
+            488,
+            948,
+            508,
+            959
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "page_footnote",
+        "text": "15https://unsloth.ai/blog/contpretraining see also the following blogpost https://www.anyscale.com/blog/ fine-tuning-llms-lora-or-full-parameter-an-in-depth-analysis-with-llama-2 (Niederfahrenhorst et al., 2023)",
+        "bbox": [
+            112,
+            898,
+            885,
+            924
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "chart",
+        "img_path": "images/df701e658ace7aeed32ded19214b5ae71a7e010b66dcc999aefa6a48b21dc592.jpg",
+        "content": "",
+        "chart_caption": [
+            "Model: llama-2-7b Dataset: Magicoder-Evol-Instruct-11oK (2ep)",
+            "A"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            199,
+            116,
+            488,
+            329
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "chart",
+        "img_path": "images/b39bd9500dea0d2ed9b76a939b052eb42b1ccdc37d655ff0d8a392f4d0e0afe4.jpg",
+        "content": "",
+        "chart_caption": [
+            "B",
+            "Figure S1: LoRA is more sensitive to learning rates compared to full finetuning. Llama-2-7B models (A) trained on Magicoder-Evol-Instruct-110k (Wei et al., 2023) and evaluated on HumanEval, (B) trained on MetaMathQA (Yu et al., 2023) and evaluated on GSM8K. Experiments here are performed with LionW; see Fig. S2 for a comparion to AdamW."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            521,
+            114,
+            799,
+            329
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "B.1 Learning rate sensitivity analysis across optimizers",
+        "text_level": 2,
+        "bbox": [
+            112,
+            459,
+            560,
+            477
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "We compared the AdamW and Decoupled LionW optimizers by training for two epochs of Magicoder-Evol-Instruct-110K using different learning rates. We found that Decoupled LionW performed better on HumanEval for both LoRA and full finetuning, and across learning rates, as seen in Fig. S2.",
+        "bbox": [
+            111,
+            494,
+            885,
+            541
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "chart",
+        "img_path": "images/8b902d8797818320c96dac128c0f32a47ab94af2366d8d4c2cc3626dfad3ba75.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure S2: Comparing LionW to AdamW across learning rates for two epochs of the Magicoder-Evol-Instruct-110K dataset. Left: HumanEval; Right: Average of “Language Understanding” benchmarks in the MosaicML evaluation gauntlet. Both methods peak at the learning rate used in the original paper (Wei et al., 2023)."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            194,
+            606,
+            799,
+            820
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "page_number",
+        "text": "22",
+        "bbox": [
+            488,
+            948,
+            509,
+            959
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "B.2 The importance of the alpha scaling parameter for LoRA",
+        "text_level": 2,
+        "bbox": [
+            111,
+            102,
+            598,
+            119
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "We found that the performance of all models was particularly sensitive to the LoRA α hyperparameter. Fig. S3 shows two experiments on two separate datasets (Magicoder-Evol-Instruct-110K and OpenWebMath) for LoRA with rank $r = 2 5 6$ . In both cases the best accuracy is achieved when $\\alpha = 2 r$",
+        "bbox": [
+            111,
+            204,
+            885,
+            251
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "chart",
+        "img_path": "images/68bc3dfe50327f35c80cd0be27445881403617f709d360f3e6c77449bc11d8cf.jpg",
+        "content": "",
+        "chart_caption": [
+            "(a) Jointly sweeping over LoRA α and learning rate. The optimal choice is $\\alpha = 2 r$ (blue)."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            117,
+            444,
+            493,
+            662
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "chart",
+        "img_path": "images/bdf087e74422cd2caf0ecf120686342e031c3f16ea2aa5c3c7d450a46e37b9e4.jpg",
+        "content": "",
+        "chart_caption": [
+            "(b) Continued pretraining with two different choices of α, where α = 2r is best (blue).",
+            "Figure S3: LoRA performance is sensitive to the α hyperparameter. We show that for Code IFT (a) and math CPT (b) an α that is scaled with rank such that $\\alpha = 2 r$ leads to the highest accuracy."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            531,
+            434,
+            879,
+            662
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "page_number",
+        "text": "23",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "C Finetuning on the Tülu-v2-mix dataset",
+        "text_level": 2,
+        "bbox": [
+            111,
+            101,
+            506,
+            119
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "We finetuned Llama-2-7B models on the Tülu-v2-mix (Ivison et al., 2023), which is a finetuning dataset containing chain of thought reasoning, multi-turn assistant conversations, math and science problems, code, and more.16 There are roughly 326k samples in this dataset.",
+        "bbox": [
+            109,
+            135,
+            885,
+            181
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "As in all main experiments, we compared full finetuning and LoRA r = 16, 64, 256, targeting all transformer modules. For each of the four experimental conditions, we trained a model for up to 6 epochs and evaluated it after 2, 4, and 6 epochs. Different from the main IFT experiments, the checkpoints evaluated are “hot” and are not cooled down for each training duration.",
+        "bbox": [
+            111,
+            188,
+            887,
+            250
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "As in the original paper (Ivison et al., 2023), we assess math capabilities with GSM8K Cobbe et al. (2021), STEM, humanities, and social science capabilities as the average of 57 subjects of the Massive Multitask Language Understanding (MMLU; Hendrycks et al. (2020)), and conversational capabilities with Multi-Turn Benchmark (MT-bench (Zheng et al., 2024)) which includes 80 multi-turn conversations where the model responses are evaluated automatically by GPT-4. We also compute the same average forgetting score as in all other datasets in this paper.",
+        "bbox": [
+            111,
+            256,
+            887,
+            348
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "Since datasets like Tülu-v2-mix are where LoRA is mostly used, we ask: can LoRA, even with a low rank, achieve full finetuning accuracy both in specific domains and in general conversational capabilities?",
+        "bbox": [
+            111,
+            353,
+            885,
+            386
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "C.1 Experimental setup",
+        "text_level": 2,
+        "bbox": [
+            112,
+            402,
+            312,
+            419
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "After an initial learning rate sweep, we chose the following hyperparameters:",
+        "bbox": [
+            111,
+            431,
+            665,
+            446
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "• max\\_seq\\_len: 4096",
+        "bbox": [
+            151,
+            467,
+            336,
+            481
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "• optimizer: decoupled\\_lionw (betas=[0.9, 0.95])",
+        "bbox": [
+            151,
+            481,
+            524,
+            496
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "• learning\\_rate: Full finetuning: 5e-6; LoRA 1e-4",
+        "bbox": [
+            153,
+            497,
+            535,
+            511
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "• scheduler: cosine\\_with\\_warmup (alpha\\_f=0.01, t\\_warmup=0.1dur)",
+        "bbox": [
+            153,
+            512,
+            679,
+            527
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "• weight\\_decay: 0",
+        "bbox": [
+            153,
+            527,
+            312,
+            541
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "• precision: amp\\_bf16",
+        "bbox": [
+            153,
+            542,
+            336,
+            556
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "• global\\_train\\_batch\\_size: 192",
+        "bbox": [
+            153,
+            556,
+            421,
+            571
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "• device\\_train\\_microbatch\\_size: 6",
+        "bbox": [
+            153,
+            573,
+            452,
+            587
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "• gradient\\_clipping: norm (threshold=1)",
+        "bbox": [
+            153,
+            588,
+            477,
+            603
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "• num\\_gpus: 32",
+        "bbox": [
+            153,
+            603,
+            295,
+            617
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "C.2 Results",
+        "text_level": 2,
+        "bbox": [
+            112,
+            637,
+            220,
+            652
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "First, we find that on MT-bench (Fig. S4), both LoRA and full finetuning meaningfully improve upon the base model (2.74), starting from the second epoch and improving only slightly when trained for longer. Crucially, all LoRA models are within one standard error of the mean of the full finetuning model (computed with 160 datapoints = 80 questions × 2 turns). That is, one can achieve full finetuning conversational capabilities with r = 16. The caveat is that only 80 questions appear in this benchmark and that the variance, within model, is high.",
+        "bbox": [
+            111,
+            665,
+            885,
+            757
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "In GSM8K (Fig. S5a), again, all models significantly improve upon the base model (0.145). Remarkably, even in this specific domain, LoRA and full finetuning are overlapping, with the best model being LoRA r = 256 at epoch 4, which is followed by full finetuning at epoch 2. Here too, as in the other math datasets in the paper, there is an ordering by LoRA rank.",
+        "bbox": [
+            111,
+            763,
+            885,
+            825
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "In MMLU (Fig. S5b), full finetuning and LoRA are overlapping with LoRA r = 64 as the best model (epoch 4), followed by full finetuning at epoch 2. Here there is no ordering by rank.",
+        "bbox": [
+            111,
+            830,
+            883,
+            863
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "As for forgetting (Fig. S6), we find an overall mild forgetting compared to the rest of the datasets in the paper. At two epochs, full finetuning does better than LoRA. The former starts to degrade at epoch 4. At epoch 6, the findings of the main paper are replicated: full finetuning forgets the most and we find a clear ordering of forgetting by rank.",
+        "bbox": [
+            111,
+            868,
+            885,
+            901
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "page_footnote",
+        "text": "16https://huggingface.co/datasets/allenai/tulu-v2-sft-mixture",
+        "bbox": [
+            124,
+            910,
+            557,
+            924
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "page_number",
+        "text": "24",
+        "bbox": [
+            488,
+            948,
+            509,
+            959
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            111,
+            103,
+            883,
+            135
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "Across all evaluations – learning and forgetting – full finetuning is the best model at epoch 2, and only degrades afterwards. LoRA, on the other hand, needs 4 epochs to train, mirroring the findings in the main part of the paper. LoRA r = 16 seems to offer competitive conversational capabilities, and minimal forgetting, but it underperforms in domain-specific knowledge like math. Future work should seek to understand why this is the case.",
+        "bbox": [
+            111,
+            141,
+            885,
+            218
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "chart",
+        "img_path": "images/f338fb1fa62af2c89372a3dd401629c15e8c4a0a44e33f1e8d10a82f6a58fd56.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure S4: Average MT-bench score with GPT-4 as a judge, calculated over 80 questions with two turns each. Base model value as reported in the MT-bench paper. We note that the Tülu paper reports a 6.3 MT-bench value from full finetuning of Llama-2-7B base model, which is only slightly exceeding the standard error from our average score."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            310,
+            233,
+            686,
+            496
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "chart",
+        "img_path": "images/e978ee1d36fb8e498b8725a020777ee15e4f8edad0e21c324e47c26b0384d08c.jpg",
+        "content": "",
+        "chart_caption": [
+            "(a) Accuracy in GSM8K."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            117,
+            606,
+            483,
+            843
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "chart",
+        "img_path": "images/e0dba8dbfc6d9807139d5942e1048e080e0371e3b89a4be1d11911f9b494220b.jpg",
+        "content": "",
+        "chart_caption": [
+            "(b) Average of MMLU benchmarks.",
+            "Figure S5: On Tülu-v2-mix, LoRA and full finetuning both improve upon the base model and perform comparably."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            514,
+            601,
+            879,
+            842
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "page_number",
+        "text": "25",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "chart",
+        "img_path": "images/ddcdef140acb88df283a0fa9ee04b1ea8146d71778b4c0d07345d39f58994d89.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure S6: LoRA forgets less even on a more diverse IFT dataset like Tülu-v2-mix. We plot the average forgetting score, same as in all other datasets, as a function of training duration."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            312,
+            364,
+            687,
+            612
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            604,
+            47
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "page_number",
+        "text": "26",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "text",
+        "text": "D Supplementary tables",
+        "text_level": 2,
+        "bbox": [
+            112,
+            101,
+            356,
+            119
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "table",
+        "img_path": "images/534be69293debf2575b075b3129a89f5e348467fda70484287777965c37a6093.jpg",
+        "table_caption": [
+            "Table S1: Starcoder-Python Results (HumanEval pass@1, temperature 0.2)"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Num. tokens (billions) Condition</td><td>0.25</td><td>0.50</td><td>1</td><td>2</td><td>4</td><td>8</td><td>16</td><td>20</td></tr><tr><td>LoRA (r=16)</td><td>0.143</td><td>0.144</td><td>0.141</td><td>0.141</td><td>0.154</td><td>0.159</td><td>0.162</td><td>0.162</td></tr><tr><td>LoRA (r=64)</td><td>0.142</td><td>0.146</td><td>0.141</td><td>0.153</td><td>0.157</td><td>0.176</td><td>0.194</td><td>0.196</td></tr><tr><td>LoRA (r=256)</td><td>0.144</td><td>0.142</td><td>0.143</td><td>0.159</td><td>0.159</td><td>0.208</td><td>0.211</td><td>0.224</td></tr><tr><td>Full Finetuning</td><td>0.152</td><td>0.153</td><td>0.172</td><td>0.181</td><td>0.218</td><td>0.258</td><td>0.255</td><td>0.263</td></tr></table>",
+        "bbox": [
+            181,
+            166,
+            815,
+            272
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "table",
+        "img_path": "images/f8e18e8c739c9ec7c815a452eeb4136d2094ac59d376386f055aee00431087fb.jpg",
+        "table_caption": [
+            "Table S2: Starcoder-Python Results (Forgetting Average)"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Num. tokens (billions) Condition</td><td>0.25</td><td>0.50</td><td>1</td><td>2</td><td>4</td><td>8</td><td>16</td><td>20</td></tr><tr><td>LoRA (r=16)</td><td>0.645</td><td>0.642</td><td>0.645</td><td>0.642</td><td>0.644</td><td>0.640</td><td>0.638</td><td>0.635</td></tr><tr><td>LoRA (r=64)</td><td>0.646</td><td>0.644</td><td>0.646</td><td>0.646</td><td>0.639</td><td>0.634</td><td>0.626</td><td>0.626</td></tr><tr><td>LoRA (r=256)</td><td>0.644</td><td>0.645</td><td>0.643</td><td>0.639</td><td>0.636</td><td>0.630</td><td>0.618</td><td>0.617</td></tr><tr><td>Full Finetuning</td><td>0.625</td><td>0.624</td><td>0.625</td><td>0.616</td><td>0.599</td><td>0.583</td><td>0.551</td><td>0.545</td></tr></table>",
+        "bbox": [
+            183,
+            323,
+            815,
+            428
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "table",
+        "img_path": "images/50fd48febc472ea9265abab1c2772076b13da97eba53237682b2cda3b58bb73f.jpg",
+        "table_caption": [
+            "Table S3: OpenWebMath Results (GSM8K)"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Num. tokens (billions) Condition</td><td>0.25</td><td>0.50</td><td>1</td><td>2</td><td>4</td><td>8</td><td>16</td><td>20</td></tr><tr><td>LoRA (r=16)</td><td>0.162</td><td>0.157</td><td>0.161</td><td>0.155</td><td>0.165</td><td>0.156</td><td>0.152</td><td>0.158</td></tr><tr><td>LoRA (r=64)</td><td>0.163</td><td>0.167</td><td>0.150</td><td>0.166</td><td>0.164</td><td>0.168</td><td>0.179</td><td>0.163</td></tr><tr><td>LoRA (r=256)</td><td>0.162</td><td>0.161</td><td>0.140</td><td>0.170</td><td>0.193</td><td>0.196</td><td>0.203</td><td>0.202</td></tr><tr><td>Full Finetuning</td><td>0.155</td><td>0.152</td><td>0.165</td><td>0.158</td><td>0.224</td><td>0.238</td><td>0.283</td><td>0.293</td></tr></table>",
+        "bbox": [
+            181,
+            477,
+            815,
+            583
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "page_number",
+        "text": "27",
+        "bbox": [
+            488,
+            946,
+            508,
+            960
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "table",
+        "img_path": "images/d62af1da888e88a1a6e1a4cf5ef832a2db34a682679bd39b37eac2ca57c20ca2.jpg",
+        "table_caption": [
+            "Table S4: OpenWebMath Results (Forgetting Average)"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Num. tokens (billions) Condition</td><td>0.25</td><td>0.50</td><td>1</td><td>2</td><td>4</td><td>8</td><td>16</td><td>20</td></tr><tr><td>LoRA (r=16)</td><td>0.640</td><td>0.641</td><td>0.646</td><td>0.641</td><td>0.643</td><td>0.641</td><td>0.636</td><td>0.637</td></tr><tr><td>LoRA (r=64)</td><td>0.640</td><td>0.640</td><td>0.638</td><td>0.637</td><td>0.643</td><td>0.634</td><td>0.634</td><td>0.627</td></tr><tr><td>LoRA (r=256)</td><td>0.638</td><td>0.638</td><td>0.637</td><td>0.634</td><td>0.633</td><td>0.620</td><td>0.620</td><td>0.616</td></tr><tr><td>Full Finetuning</td><td>0.634</td><td>0.634</td><td>0.640</td><td>0.630</td><td>0.629</td><td>0.619</td><td>0.613</td><td>0.618</td></tr></table>",
+        "bbox": [
+            181,
+            140,
+            815,
+            246
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "table",
+        "img_path": "images/4665c5accf00d0f5edcbf8646d0c0f6cd266561321cea28c09de247c89c7eb68.jpg",
+        "table_caption": [
+            "Table S5: Magicoder-Evol-Instruct-110K Results (HumanEval pass@1)"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Epoch Condition</td><td>1</td><td>2</td><td>4</td><td>8</td><td>16</td></tr><tr><td>LoRA (r=16)</td><td>0.197</td><td>0.275</td><td>0.358</td><td>0.338</td><td>0.324</td></tr><tr><td>LoRA (r=64)</td><td>0.249</td><td>0.339</td><td>0.417</td><td>0.392</td><td>0.405</td></tr><tr><td>LoRA (r=256)</td><td>0.299</td><td>0.385</td><td>0.498</td><td>0.437</td><td>0.466</td></tr><tr><td>Full Finetuning</td><td>0.302</td><td>0.464</td><td>0.470</td><td>0.497</td><td>0.416</td></tr></table>",
+        "bbox": [
+            292,
+            305,
+            705,
+            411
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "table",
+        "img_path": "images/0fb94f609ef7df08092e6cb1d47dcce51d71cee03a4d50aa2f2e3ca2b52a5aff.jpg",
+        "table_caption": [
+            "Table S6: Magicoder-Evol-Instruct-110K Results (Forgetting Average)"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Epoch Condition</td><td>1</td><td>2</td><td>4</td><td>8</td><td>16</td></tr><tr><td>LoRA (r=16)</td><td>0.653</td><td>0.648</td><td>0.652</td><td>0.646</td><td>0.609</td></tr><tr><td>LoRA (r=64)</td><td>0.652</td><td>0.651</td><td>0.632</td><td>0.580</td><td>0.510</td></tr><tr><td>LoRA (r=256)</td><td>0.655</td><td>0.659</td><td>0.631</td><td>0.552</td><td>0.517</td></tr><tr><td>Full Finetuning</td><td>0.595</td><td>0.579</td><td>0.512</td><td>0.446</td><td>0.414</td></tr></table>",
+        "bbox": [
+            292,
+            470,
+            705,
+            577
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "table",
+        "img_path": "images/1189dd22cd37898a9e3078dd1772c370599e5f7cb52717cc19fe5661575d1d2c.jpg",
+        "table_caption": [
+            "Table S7: MetaMathQA Results (GSM8K)"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Epoch Condition</td><td>1</td><td>2</td><td>4</td><td>8</td><td>16</td></tr><tr><td>LoRA (r=16)</td><td>0.447</td><td>0.528</td><td>0.580</td><td>0.578</td><td>0.569</td></tr><tr><td>LoRA (r=64)</td><td>0.527</td><td>0.588</td><td>0.624</td><td>0.624</td><td>0.595</td></tr><tr><td>LoRA (r=256)</td><td>0.557</td><td>0.607</td><td>0.625</td><td>0.634</td><td>0.594</td></tr><tr><td>Full Finetuning</td><td>0.604</td><td>0.641</td><td>0.642</td><td>0.619</td><td>0.599</td></tr></table>",
+        "bbox": [
+            292,
+            636,
+            705,
+            742
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "table",
+        "img_path": "images/8ab1b74711081458f1cedecbe7663bd7d30383c4edda1508287dc66a8c961ef5.jpg",
+        "table_caption": [
+            "Table S8: MetaMathQA Results (Forgetting Average)"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Epoch Condition</td><td>1</td><td>2</td><td>4</td><td>8</td><td>16</td></tr><tr><td>LoRA (r=16)</td><td>0.628</td><td>0.617</td><td>0.616</td><td>0.616</td><td>0.596</td></tr><tr><td>LoRA (r=64)</td><td>0.617</td><td>0.609</td><td>0.608</td><td>0.586</td><td>0.568</td></tr><tr><td>LoRA (r=256)</td><td>0.613</td><td>0.607</td><td>0.599</td><td>0.584</td><td>0.567</td></tr><tr><td>Full Finetuning</td><td>0.598</td><td>0.599</td><td>0.590</td><td>0.572</td><td>0.559</td></tr></table>",
+        "bbox": [
+            294,
+            803,
+            705,
+            909
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            114,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "page_number",
+        "text": "28",
+        "bbox": [
+            488,
+            948,
+            508,
+            960
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "table",
+        "img_path": "images/79907b3e09eb806c6260a7bbe3e1cbf59164423d03cd143802573f2372be66e4.jpg",
+        "table_caption": [
+            "Table S9: Tülu-v2-mix Results",
+            "Table S10: Tülu-v2-mix MT-Bench"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Epoch Condition</td><td>2</td><td>4</td><td>6</td></tr><tr><td>LoRA (r=16)</td><td>5.681</td><td>5.997</td><td>5.712</td></tr><tr><td>LoRA (r=64)</td><td>5.597</td><td>5.725</td><td>5.944</td></tr><tr><td>LoRA (r=256)</td><td>5.788</td><td>5.834</td><td>5.894</td></tr><tr><td>Full Finetuning</td><td>5.825</td><td>5.838</td><td>5.862</td></tr></table>",
+        "bbox": [
+            166,
+            402,
+            467,
+            507
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "table",
+        "img_path": "images/c27317f5465e34385f60e6ef186b4b04a12559a222d07e01b400aeee2d17458d.jpg",
+        "table_caption": [
+            "Table S11: Tülu-v2-mix MMLU"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Epoch Condition</td><td>2</td><td>4</td><td>6</td></tr><tr><td>LoRA (r=16)</td><td>0.491</td><td>0.502</td><td>0.504</td></tr><tr><td>LoRA (r=64)</td><td>0.503</td><td>0.509</td><td>0.504</td></tr><tr><td>LoRA (r=256)</td><td>0.502</td><td>0.496</td><td>0.492</td></tr><tr><td>Full Finetuning</td><td>0.507</td><td>0.504</td><td>0.502</td></tr></table>",
+        "bbox": [
+            531,
+            402,
+            831,
+            507
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "table",
+        "img_path": "images/f4fdf6f1e35bea6d169a978ba58ff0c437157662f48eccaefdb4798a2a1dd7e0.jpg",
+        "table_caption": [
+            "Table S12: Tülu-v2-mix GSM8K"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Epoch Condition</td><td>2</td><td>4</td><td>6</td></tr><tr><td>LoRA (r=16)</td><td>0.251</td><td>0.275</td><td>0.280</td></tr><tr><td>LoRA (r=64)</td><td>0.285</td><td>0.270</td><td>0.295</td></tr><tr><td>LoRA (r=256)</td><td>0.296</td><td>0.335</td><td>0.301</td></tr><tr><td>Full Finetuning</td><td>0.324</td><td>0.291</td><td>0.303</td></tr></table>",
+        "bbox": [
+            166,
+            566,
+            467,
+            672
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "table",
+        "img_path": "images/fca9afd9ab6d2d2c721fa81534e986b7676baa829a68fb89cdf673eefd2dd4e6.jpg",
+        "table_caption": [
+            "Table S13: Tülu-v2-mix Forgetting Average"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>epoch condition</td><td>2</td><td>4</td><td>6</td></tr><tr><td>LoRA (r=16)</td><td>0.650</td><td>0.657</td><td>0.657</td></tr><tr><td>LoRA (r=64)</td><td>0.649</td><td>0.655</td><td>0.647</td></tr><tr><td>LoRA (r=256)</td><td>0.653</td><td>0.649</td><td>0.629</td></tr><tr><td>Full Finetuning</td><td>0.660</td><td>0.652</td><td>0.621</td></tr></table>",
+        "bbox": [
+            529,
+            566,
+            831,
+            672
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            114,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "page_number",
+        "text": "29",
+        "bbox": [
+            488,
+            946,
+            509,
+            960
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "text",
+        "text": "E Supplementary Figures for SVD Analysis",
+        "text_level": 2,
+        "bbox": [
+            111,
+            101,
+            531,
+            119
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "chart",
+        "img_path": "images/5540fe7baf1dc3aead1c263c48812daccc87ab6b63c09957cfbccc575dd0a192.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            276,
+            142,
+            493,
+            356
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "chart",
+        "img_path": "images/05277bd86d20a7213b2f5d55ecd7939bb850b7910127d69344b051104693d294.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure S7: SVD analysis for 4096 × 4096 matrix $W _ { q }$ at layer 26. Left: singular values for base weights, finetuned weights, and their difference. Right: cumulative explained variance. Notice that for all three matrices, a rank $> 1 5 0 0$ is needed to explain 90% of the variance."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            495,
+            142,
+            723,
+            356
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "chart",
+        "img_path": "images/ba77deb2fd0df9a772becc0b79dd2a911de479a21224b4de765af5a9b0b8d1c3.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            127,
+            454,
+            452,
+            655
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "chart",
+        "img_path": "images/a5d6f7e27dd5e75a96d573f8dba1824c3953ba15e14d477b85ccd084690e5a54.jpg",
+        "content": "",
+        "chart_caption": [
+            "(a) Spectrum of A and $A + c B$ as well as cB for $c = 0 . 1$ Notably, $A , c B , A + c B$ are all high rank.",
+            "(b) Mean absolute difference between spectra of A and A + cB for various c.",
+            "Figure S8: Analyzing the spectra of the sum of two $1 0 0 0 \\times 1 0 0 0$ Gaussian i.i.d matrices. A and B are $1 0 0 0 \\times 1 0 0 0$ random matrices with i.i.d. standard normal Gaussian entries."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            513,
+            455,
+            849,
+            657
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "page_number",
+        "text": "30",
+        "bbox": [
+            488,
+            946,
+            509,
+            960
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "text",
+        "text": "F Solution Generation Diversity on HumanEval",
+        "text_level": 2,
+        "bbox": [
+            111,
+            101,
+            566,
+            119
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "For the best set of Llama-2-7B models trained on Magicoder for 4 epochs, we evaluate how the pass@k metric in the HumanEval benchmark increases as we increase the parameter k which controls the acceptance criterion. The pass@k metric (Chen et al., 2021) is defined as",
+        "bbox": [
+            111,
+            133,
+            885,
+            181
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "equation",
+        "img_path": "images/97c4652fa4f3445513d5cd922c12e5abee2929184bbfde315e408ed806038480.jpg",
+        "text": "$$\n\\operatorname { p a s s @ } k : = \\mathbb { E } \\left[ 1 - { \\frac { { \\binom { n - c } { k } } } { { \\binom { n } { k } } } } \\right] ,\\tag{1}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            398,
+            189,
+            596,
+            233
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "where n is the number of generations, c the number of correct generations and k determines the size of the sample set of generations considered for acceptance. Assuming we sample from the model outputs, i.e. sampling temperature $T > 0 .$ , then increasing k will increase the diversity of generations, and increase the likelihood of a passing generation being present in a random subset of size k.",
+        "bbox": [
+            111,
+            241,
+            885,
+            304
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "Figure S9 reports pass@k for the LoRA models trained on the Magicoder dataset as well as the base Llama-2- 7B model. For all models, as we increase k, the pass@k consistently and monotonically improves. Finetuned models scores are substantially higher than the base model. At k = 1, full finetuning outperforms the LoRA model whose scores are ordered from largest to smallest rank, as expected. As k increases we observe that all models improve their pass@k scores, and that the gap between them reduces when $k > 1 6$ . We note that full finetuning is superior across all values of k with temperature 0.8. This complements the results in Fig. 1 which used a temperature of 0.2 and pass@1, where the improvements upon $r = 2 5 6$ at epoch 4 are less clear.",
+        "bbox": [
+            111,
+            309,
+            887,
+            417
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "chart",
+        "img_path": "images/ddae640d9b0bcc72e26717b5ab0d8b757deb67c0119e832a2b2d6c20a66bd649.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure S9: HumanEval pass@k for models trained on the Magicoder dataset. For every model, we sample 256 independent generations with temperature 0.8."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            214,
+            430,
+            776,
+            699
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "page_number",
+        "text": "31",
+        "bbox": [
+            488,
+            948,
+            508,
+            960
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "G Training Datasets",
+        "text_level": 2,
+        "bbox": [
+            112,
+            101,
+            316,
+            119
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "text",
+        "text": "G.1 MetaMathQA (Math IFT)",
+        "text_level": 2,
+        "bbox": [
+            112,
+            140,
+            344,
+            156
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "text",
+        "text": "The MetaMathQA dataset (Yu et al. (2023), https://huggingface.co/datasets/meta-math/MetaMathQA) contains 395,000 samples that are bootsrapped from the GSM (Cobbe et al., 2021) and Math (Hendrycks et al., 2021) training sets. These samples are augmented by GPT-3.5 using the following methods:",
+        "bbox": [
+            111,
+            171,
+            885,
+            219
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "text",
+        "text": "• Answer Augmentation (155k samples, Yu et al. (2023)): this method proposed by the MetaMathQA authors generates multiple reasoning paths for a given mathetical question and filters for generated reasoning paths that contain the correct final answer.",
+        "bbox": [
+            151,
+            250,
+            883,
+            296
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "text",
+        "text": "• Rephrasing (130k samples, (Yu et al., 2023)): this method proposed by the MetaMathQA authors uses GPT-3.5 to rephrase questions. They check for the correctness of rephrased questions by using few-shot Chain of Thought prompting to compare reasoning chains and proposed answers with ground truth answers.",
+        "bbox": [
+            153,
+            324,
+            885,
+            387
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "text",
+        "text": "Both Self-Verification (Weng et al., 2022) and FOBAR (Jiang et al., 2024b) fall under the category of “backward reasoning,” where the question starts with a given condition and requires reasoning backwards to solve for an unknown variable. In order to generate new mathematical questions, a numerical value in the original question is masked as a variable X, and the question is rephrased accordingly.",
+        "bbox": [
+            111,
+            416,
+            885,
+            479
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "text",
+        "text": "• Self-Verification (55k samples, Weng et al. (2022)): the question is rephrased into a declarative statement followed by a question about the masked variable X.",
+        "bbox": [
+            151,
+            508,
+            883,
+            540
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "text",
+        "text": "• FOBAR (55k samples, Jiang et al. (2024b)): this approach is similar to Self-Verification but directly appends the answer to the question using the template “If we know the answer to the above question is Aˆc, what is the value of unknown variable x?”",
+        "bbox": [
+            151,
+            569,
+            883,
+            616
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "text",
+        "text": "MetaMathQA samples are organized by 4 columns: type, original\\_question, query and response.",
+        "bbox": [
+            111,
+            646,
+            843,
+            664
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "text",
+        "text": "We include two full examples below:",
+        "bbox": [
+            112,
+            669,
+            377,
+            685
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "code",
+        "sub_type": "algorithm",
+        "code_caption": [],
+        "code_footnote": [],
+        "code_body": "Example G.1: MetaMathQA   \ntype: GSM\\_Rephrased   \nquery: Scott wants to prepare and freeze a large portion of ratatouille. He purchases 5 pounds of eggplants and 4 pounds of   \nzucchini at a rate of \\$2.00 per pound from the farmers’ market. Additionally, he needs 4 pounds of tomatoes that cost \\$3.50   \nper pound, 3 pounds of onions priced at \\$1.00 per pound, and a pound of basil sold for \\$2.50 per half pound. If this quantity   \nyields 4 quarts, what is the cost per quart?   \noriginal\\_question: Scott wants to make and freeze a large batch of ratatouille. At the farmers’ market he buys 5 pounds of   \neggplants and 4 pounds of zucchini at \\$2.00 a pound. He needs 4 pounds of tomatoes that are \\$3.50 a pound. The onions are   \n\\$1.00 a pound and he needs 3 pounds. Then he needs a pound of basil which is sold for \\$2.50 per half pound. If this yields 4   \nquarts, how much does each quart cost?   \nresponse: The cost of the eggplants is 5 pounds x \\$2.00 per pound = \\$10.00. The cost of the zucchini is 4 pounds x \\$2.00   \nper pound = \\$8.00. The cost of the tomatoes is 4 pounds x \\$3.50 per pound = \\$14.00. The cost of the onions is 3 pounds x   \n\\$1.00 per pound = \\$3.00. The cost of the basil is 1 pound x (\\$2.50 per half pound x 2) = \\$5.00. The total cost for all the   \ningredients is \\$10.00 + \\$8.00 + \\$14.00 + \\$3.00 + \\$5.00 = \\$40.00. Since this quantity yields 4 quarts, the cost per quart is   \n\\$40.00 / 4 quarts = \\$10.00 per quart. #### 10 The answer is: 10",
+        "bbox": [
+            117,
+            686,
+            879,
+            917
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "page_number",
+        "text": "32",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "code",
+        "sub_type": "algorithm",
+        "code_caption": [],
+        "code_footnote": [],
+        "code_body": "Example G.2: MetaMathQA   \ntype: MATH\\_SV   \nquery: If a school bus leaves school with X students on board, and one-half of the students get off the bus at each of the   \nfirst three stops, The number of students remaining on the bus after the third stop is 6. What is the value of unknown variable X?   \noriginal\\_question: If a school bus leaves school with 48 students on board, and one-half of the students get off the bus at   \neach of the first three stops, how many students remain on the bus after the third stop?   \nresponse: To solve this problem, we need to determine the value of x, which represents the initial number of students on the   \nbus. Let’s break down the information given: Number of students remaining on the bus after the third stop: 6 Number of   \nstudents getting off the bus at each stop: 1/2 Number of stops: 3 We can set up the equation as follows: Number of students   \non the bus $^ { * } ( \\tilde { 1 / 2 } ) \\hat { } 3 =$ Number of students remaining on the bus after the third stop $\\textrm { x } ^ { * } ~ ( 1 / 2 ) \\hat { \\textrm { } } 3 = 6$ Let’s simplify and   \nsolve for x: $\\mathrm { ~ x ~ } ^ { \\ast } \\left( 1 / 8 \\right) = 6$ To isolate x, we multiply both sides of the equation by 8: $\\textbf { x } ^ { * } \\mathbf { \\widetilde { \\Phi } } ( 1 / 8 ) \\mathbf { \\widetilde { \\Phi } } ^ { * } \\mathbf { \\widetilde { 8 } } = 6 \\mathbf { \\Phi } ^ { * } \\mathbf { 8 } \\mathbf { \\Phi } \\mathbf { x } = 4 8$ The value of   \nx is 48. The answer is: 48",
+        "bbox": [
+            114,
+            102,
+            879,
+            286
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "text",
+        "text": "G.2 Magicoder-Evol-Instruct-110k (Code IFT)",
+        "text_level": 2,
+        "bbox": [
+            112,
+            329,
+            473,
+            347
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "text",
+        "text": "As stated in the main text, this dataset contains 72.97M tokens of programming questions and answers (Wei et al., 2023). It reproduces the “Evol-Instruct” dataset of WizardCoder (Luo et al., 2023b) by iteratively prompting an LLM (GPT-4) to increase the difficulty of a set of question-answer pairs from Code Alpaca (Chaudhary, 2023). The dataset can be found here: https://huggingface.co/datasets/ ise-uiuc/Magicoder-Evol-Instruct-110K",
+        "bbox": [
+            111,
+            368,
+            885,
+            445
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "code",
+        "sub_type": "algorithm",
+        "code_caption": [],
+        "code_footnote": [],
+        "code_body": "Example G.3: Magicoder-Evol-Instruct-110k   \ninstruction: Please amend the subsequent Python script so that it includes a ’while’ loop rather than the existing ’for’ loop,   \nwhich iterates through the items of an integer list. The script currently has a bug where it attempts to print an object that is   \noutside the bounds of the list. Fix this error and modify the script to use ’while’ instead of ’for’ loop. Ensure your script   \ncorrectly handles empty lists.   \n‘‘‘python   \n# Establish an integer list   \narr = [1, 2, 3, 4]   \n# Determine the length of the list   \nn = len(arr)   \n# Traverse the list and output each individual element   \nfor i in range(n+1): print(arr[i]) ‘‘‘   \nresponse:   \n‘‘‘python # Establish an integer list arr = [1, 2, 3, 4]   \n# Determine the length of the list   \nn = len(arr)   \n# Initialize index at 0 i = 0   \n# Traverse the list and output each individual element   \nwhile i < n: print(arr[i]) i += 1   \n‘‘‘   \nIn the given code, it tries to access ‘arr[n]‘ which is out of bounds as python list indexing starts from 0 and ends at n-1 for a   \nlist of length n. Also, I used ‘while‘ loop as per your request. By initializing ‘i=0‘ before the loop and ‘i += 1‘ within the   \nloop, we can iterate over the list. This iteration continues until ‘i‘ is less than ‘n‘, the length of the list. The ‘while‘ loop will   \nnot proceed if the list is empty so it correctly handles empty lists.",
+        "bbox": [
+            114,
+            446,
+            880,
+            781
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "text",
+        "text": "G.3 Starcoder Python (Code CPT)",
+        "text_level": 2,
+        "bbox": [
+            112,
+            824,
+            390,
+            842
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "text",
+        "text": "As stated in the main text, this dataset consists of permissively licensed repositories from GitHub, including Git commits, in 80+ programming languages (Li et al., 2023a) . We chose the Python subset and sub-sampled it to 20B tokens. The full dataset can be found here: https://huggingface.co/datasets/bigcode/ starcoderdata",
+        "bbox": [
+            111,
+            863,
+            885,
+            924
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            114,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "page_number",
+        "text": "33",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_footnote": [],
+        "code_body": "```python\nExample G.4: Starcoder-Python\n‘‘‘python \"\"\"\nfunction of invoking Gitee API\n\"\"\"\nimport base64\nimport logging\nimport requests\nfrom flask import current_app\nfrom requests import exceptions\nlogger = logging.getLogger(__name__)\nORG_URL = \"\\href{https://gitee.com/api/v5/orgs}{https://gitee.com/api/v5/orgs}\"\nREPO_URL = \"\\href{https://gitee.com/api/v5/repos}{https://gitee.com/api/v5/repos}\"\ndef get_request(url, params):\n\"\"\"\nget request\n\"\"\"\nlogger.debug(\"Get request, connect url: %s\", url)\ntry:\nresponse = requests.get(url,params=params)\nreturn True, response\nexcept exceptions.ConnectionError as err:\nlogger.error(err)\nreturn False, ’connection error’\nexcept IOError as err:\nlogger.error(err)\nreturn False, ’IO error’\nmore functions truncated...\n```",
+        "bbox": [
+            117,
+            103,
+            880,
+            690
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "text",
+        "text": "G.4 OpenWebMath (Math CPT)",
+        "text_level": 2,
+        "bbox": [
+            112,
+            797,
+            366,
+            815
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "text",
+        "text": "As stated in the main text, this dataset contains 14.7B tokens derived from mathematical web pages from Common Crawl, correctly formatted to preserve mathematical content such as LaTeX equations (Paster et al., 2023) . The dataset can be found here: https://huggingface.co/datasets/open-web-math/ open-web-math. As can be seen from the example below, this dataset contains a large amount of English.",
+        "bbox": [
+            111,
+            863,
+            885,
+            925
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            114,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "page_number",
+        "text": "34",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "text",
+        "text": "Example G.5: OpenWebMath",
+        "text_level": 2,
+        "bbox": [
+            122,
+            104,
+            369,
+            119
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "url: http://math.stackexchange.com/questions/222974/probability-of-getting -2-aces-2-kings-and-1-queen-in-afive-card-poker-hand-pa",
+        "bbox": [
+            120,
+            126,
+            877,
+            152
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "text: # Probability of getting 2 Aces, 2 Kings and 1 Queen in a five card poker hand (Part II) So I reworked my formula in method 1 after getting help with my original question - Probability of getting 2 Aces, 2 Kings and 1 Queen in a five card poker hand. But I am still getting results that differ...although they are much much closer than before, but I must still be making a mistake somewhere in method 1. Anyone know what it is? Method 1 \\$P(2A \\cap 2K \\cap 1Q) = P(Q|2A \\cap 2K)P(2A|2K)P(2K)\\$ \\$\\$= \\frac{1}{12}\\frac{{4 \\choose 2}{46 \\choose 1}}{50 \\choose 3}\\frac{{4 \\choose 2}{48 \\choose 3}}{52 \\choose 5}\\$\\$ \\$\\$= \\frac{(6)(17296)(6)(46)}{(2598960)(19600)(12)}\\$\\$ \\$\\$= 4.685642 \\* 10ˆ{-5}\\$\\$ Method 2 \\$\\$\\frac{{4 \\choose 2} {4 \\choose 2}{4 \\choose 1}}{52 \\choose 5} = \\frac{3}{54145}\\$\\$ \\$\\$5.540678 \\* 10ˆ{-5}\\$\\$ - Please make an effort to make the question self-contained and provide a link to your earlier question.",
+        "bbox": [
+            119,
+            162,
+            875,
+            263
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "– Sasha Oct 28 ’12 at 19:56 I think we would rather ahve you edit your initial question by adding your new progress. This avoids having loss of answer and keeps track of progress – Jean-Sébastien Oct 28 ’12 at 19:56 But there already answers to my original question so those answers would not make sense now that I am using a new formula for method 1. – sonicboom Oct 28 ’12 at 20:03 Conditional probability arguments can be delicate. Given that there are exactly two Kings, what’s the \\$46\\$ doing? That allows the possibility of more Kings.",
+        "bbox": [
+            119,
+            262,
+            874,
+            323
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "– André Nicolas Oct 28 ’12 at 20:26 The \\$46\\$ is because have already taken two kings from the pack leaving us with 50. And now we have chosen 2 aces and we have to pick the other 1 card from the 50 remaining cards less the 4 aces? – sonicboom Oct 28 ’12 at 20:42 show 1 more comment \\$\\$\\frac{1}{11}\\frac{{4 \\choose 2}{44 \\choose 1}}{48 \\choose 3}\\frac{{4 \\choose 2}{48 \\choose 3}}{52 \\choose 5}\\$\\$ If you wrote this as \\$\\$\\frac{{4 \\choose 2}{48 \\choose 3}}{52 \\choose 5}\\frac{{4 \\choose 2}{44 \\choose 1}}{48 \\choose 3}\\frac{{4 \\choose 1}{40 \\choose 0}}{44 \\choose 1}\\$\\$ it might be more obvious why they are the same.",
+        "bbox": [
+            119,
+            321,
+            875,
+            397
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "date: 2014-03-07 11:01:44",
+        "bbox": [
+            122,
+            406,
+            297,
+            417
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            114,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "page_number",
+        "text": "35",
+        "bbox": [
+            488,
+            948,
+            508,
+            960
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "There is often some confusion about the memory gains that vanilla LoRA offers both in theory and in practice. In Appendix H we discuss some of the theoretical benefits of LoRA, and show how it can enable training both on GPUs with less memory and on fewer total GPUs (in the multi-GPU setting). In Appendix I we show how LoRA in practice leads to memory savings relative to full finetuning, but can in fact lead to slower throughput for particular hardware and software settings.",
+        "bbox": [
+            111,
+            103,
+            885,
+            181
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "H Theoretical Memory Efficiency Gains with LoRA for Single and Multi-GPU Settings",
+        "text_level": 2,
+        "bbox": [
+            112,
+            196,
+            831,
+            233
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "Modern systems for training neural networks store and operate on the following objects (following the conventions in Rajbhandari et al. (2020)). Most memory requirements relate to model states, which include:",
+        "bbox": [
+            111,
+            250,
+            885,
+            281
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "• parameter weights",
+        "bbox": [
+            153,
+            299,
+            308,
+            313
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "• gradients",
+        "bbox": [
+            155,
+            314,
+            243,
+            327
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "• higher order optimization quantities such as optimizer momentum and variance in the Adam optimizer, and the momentum in the Lion optimizer",
+        "bbox": [
+            151,
+            327,
+            883,
+            358
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "The remaining memory requirements come from the residual states:",
+        "bbox": [
+            112,
+            376,
+            601,
+            392
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "• activations (which depend on batch size and maximum sample sequence length)",
+        "bbox": [
+            151,
+            410,
+            746,
+            424
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "• temporary buffers for intermediate quantities in the forward and backward pass.",
+        "bbox": [
+            153,
+            425,
+            750,
+            440
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "which will require more memory when increasing the batch size and maximum sequence lengths.",
+        "bbox": [
+            112,
+            458,
+            805,
+            473
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "LoRA offers memory savings with respect to the model states. The next two sections describe these memory savings in the single GPU and multi-GPU setting with examples loosely inspired by Rajbhandari et al. (2020).",
+        "bbox": [
+            111,
+            481,
+            883,
+            512
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "The data stored at single precision includes:",
+        "bbox": [
+            112,
+            517,
+            433,
+            534
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "• a “master copy” of the tuned parameter weights",
+        "bbox": [
+            151,
+            551,
+            521,
+            566
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "• the gradient",
+        "bbox": [
+            155,
+            568,
+            264,
+            580
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "• all optimizer states (both momentum and variance for Adam, and just momentum for Lion)",
+        "bbox": [
+            151,
+            582,
+            833,
+            597
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "For simplicity, we do not consider mixed-precision training, which involves storing critical data at single precision (fp32; 4 bytes per number) while performing some computations at half precision (fp16 or bfloat16; 2 bytes per number).",
+        "bbox": [
+            111,
+            614,
+            885,
+            661
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "H.1 Training on a Single GPU",
+        "text_level": 2,
+        "bbox": [
+            112,
+            676,
+            356,
+            694
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "In the single GPU setup, the difference in memory requirements between LoRA and full finetuning is particularly drastic when using the Adam optimizer (Hu et al., 2021; Rajbhandari et al., 2020).",
+        "bbox": [
+            111,
+            705,
+            883,
+            737
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "Storing the master weights in fp32 requires 4 bytes per parameter, while storing the gradient in fp32 requires 4 bytes per tuned parameter. In order to maintain the optimizer state in fp32 for Adam, 8 bytes per tuned parameter are required; 4 bytes for the momentum term, and 4 bytes for the variance term. Let Ψ be the number of model parameters. Therefore, in the Adam full finetuning setting of a Ψ = 7B parameter model, the total memory requirements are at least roughly $4 \\times \\Psi + 4 \\times \\Psi + 8 \\times \\Psi = 1 1 2 \\mathrm { G B }$",
+        "bbox": [
+            111,
+            743,
+            885,
+            820
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "The Lion optimizer only uses a momentum term in the gradient calculation, and the variance term in Adam therefore disappears. In the Lion full finetuning setting of a Ψ = 7B parameter model, the total memory requirements are therefore roughly $4 \\times \\Psi + 4 \\times \\Psi + 4 \\times \\Psi = 8 4 \\ : \\mathrm { G B }$",
+        "bbox": [
+            111,
+            827,
+            885,
+            872
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "LoRA, on the other hand, does not calculate the gradients or maintain optimizer states (momentum and variance terms) for most of the parameters. Therefore the amount of memory used for these terms is drastically reduced.",
+        "bbox": [
+            111,
+            878,
+            883,
+            924
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            32,
+            602,
+            47
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "page_number",
+        "text": "36",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "table",
+        "img_path": "images/081321f888d99c7528ee0319c51296eb439204f8c15cd59813aa335b258203b2.jpg",
+        "table_caption": [
+            "Table S14: Theoretical memory required to store the model and optimizer state during training for a 7B parameter model. Note that the numbers exclude memory needed to store activations. FSDP sharding the parameter and optimizer states across N devices results in less memory usage relative to LoRA. LoRA on the other hand enables training on GPUs with far less memory and also enables training without needing as many GPUs to shard across."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>7B Training</td><td>1 GPU</td><td>8 GPUs</td><td>16 GPUs</td><td>32 GPUs</td><td>64 GPUs</td></tr><tr><td>Adam</td><td>112 GB</td><td>14 GB</td><td>7GB</td><td>3.5 GB</td><td>1.75 GB</td></tr><tr><td> $\\mathrm { A d a m } + \\mathrm { L o R A }$ </td><td>15.12 GB</td><td>1.89 GB</td><td>0.945 GB</td><td>0.4725 GB</td><td>0.236 GB</td></tr><tr><td>Lion</td><td>84 GB</td><td>10.5 GB</td><td>5.25 GB</td><td>2.625 GB</td><td>1.3125 GB</td></tr><tr><td> $\\mathrm { L i o n + L o R A }$ </td><td>14.84 GB</td><td>1.855 GB</td><td>0.9275 GB</td><td>0.464 GB</td><td>0.232 GB</td></tr></table>",
+        "bbox": [
+            204,
+            102,
+            790,
+            190
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "A LoRA setting with Adam that only tunes matrices that are 1% of the total parameter count $( \\mathrm { e . g . } \\Psi = 7 B $ base model with 70M additional parameters used by LoRA) requires roughly $4 \\times \\Psi ( 1 + 0 . 0 1 ) + 4 \\times \\Psi \\times 0 . 0 1 +$ $8 \\times \\Psi \\times 0 . 0 1 = 2 9 . 1 2$ GB of memory. Theoretically this can be reduced further to $2 \\times \\Psi + 1 6 \\times \\Psi \\times 0 . 0 1 =$ 15.12 GB if the non-tuned parameter weights are stored in bfloat16. We use this assumption for the subsequent examples.",
+        "bbox": [
+            111,
+            309,
+            885,
+            386
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "Note again that these numbers do not take into consideration sample batch size or sequence length, which affect the memory requirements of the activations.",
+        "bbox": [
+            111,
+            392,
+            883,
+            424
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "H.2 Training on Multiple GPUs with Fully Sharded Data Parallelism",
+        "text_level": 2,
+        "bbox": [
+            111,
+            441,
+            642,
+            459
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "Past approaches for training LLMs across multiple GPUs include model parallelism, where different layers of the LLM are stored on different GPUs. However this requires high communication overhead and has very poor throughput (Rajbhandari et al., 2020). Fully Sharded Data Parallelism (FSDP) shards the parameters, the gradient, and the optimizer states across GPUs. This is incredibly efficient and is actually competitive with the memory savings offered by LoRA in certain settings.",
+        "bbox": [
+            111,
+            470,
+            885,
+            549
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "FSDP sharding of the parameter and optimizer states across N devices results in less memory usage relative to LoRA. LoRA on the other hand enables training on GPUs with far less memory and also enables training on fewer GPUs.",
+        "bbox": [
+            111,
+            554,
+            883,
+            601
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "For example, in the Adam full finetuning setting of a Ψ = 7B parameter model on 8 GPUs with FSDP, the total memory requirement for each GPU is roughly $( 4 \\times \\Psi + 4 \\times \\Psi + 8 \\times \\Psi ) / 8 = 1 4$ GB. This reduces further to 3.5 GB for FSDP with 32 GPUs (see Table S14).",
+        "bbox": [
+            111,
+            607,
+            883,
+            654
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "The LoRA with Adam setup on 8 GPUs (where Ψ = 7B base model and there are 70M additional LoRA parameters) requires roughly $( 2 \\times \\Psi + 1 6 \\times \\Psi \\times 0 . 0 1 ) / 8 = 1 . 8 9$ GB of memory per GPU. With 32 GPUs this decreases further to 0.4725 GB.",
+        "bbox": [
+            111,
+            660,
+            885,
+            705
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "Standard industry level GPUs have on-device memory between 16 GB (e.g. V100s) and 80 GB (e.g. A100s and H100s). As Table S14 demonstrates, the per-GPU memory requirements for training a 7B parameter model decrease drastically as the number of GPUs increases. The memory requirements for training a 7B model with Adam + LoRA on a single GPU are 15.12 GB, but the same per-GPU memory requirement for training a 7B model with Adam but without LoRA on 8 GPUs is 14 GB. In this 8 GPU scenario, the efficiency gains from LoRA disappear.",
+        "bbox": [
+            111,
+            712,
+            885,
+            805
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "Table S15 applies similar calculations to a 70B parameter model. Finetuning such a large model on 8 GPUs is only possible using a technique like LoRA; where Adam requires 140 GB per GPU, Adam+LoRA requires 18.9 GB per GPU. The efficiency gains of LoRA relative to FSDP therefore depend on the model size and GPU availability/cost considerations.",
+        "bbox": [
+            111,
+            810,
+            885,
+            872
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "We do the same analysis for a 405B parameter model to highlight how LoRA is beneficial as model size scales (Table S16). This is particularly relevant now that Llama-3-405B has been released by Meta (Dubey et al., 2024).",
+        "bbox": [
+            111,
+            878,
+            885,
+            924
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "page_number",
+        "text": "37",
+        "bbox": [
+            488,
+            948,
+            508,
+            960
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "table",
+        "img_path": "images/4e5e7dc1ecf02fb744ebd45d3f8332cb3804cff40fa6ef42188c917215e6e9db.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>70B Training</td><td>1 GPU</td><td>8 GPUs</td><td>16 GPUs</td><td>32 GPUs</td><td>64 GPUs</td></tr><tr><td>Adam</td><td>1.12 TB</td><td>140 GB</td><td>70 GB</td><td>35 GB</td><td>17.5 GB</td></tr><tr><td> $\\mathrm { A d a m } + \\mathrm { L o R A }$ </td><td>151.2 GB</td><td>18.9 GB</td><td>9.45 GB</td><td>4.725 GB</td><td>2.36 GB</td></tr><tr><td>Lion</td><td>840 GB</td><td>105 GB</td><td>52.5 GB</td><td>26.25 GB</td><td>13.125 GB</td></tr><tr><td> $\\mathrm { L i o n + L o R A }$ </td><td>148.4 GB</td><td>18.55 GB</td><td>9.275 GB</td><td>4.64 GB</td><td>2.32 GB</td></tr></table>",
+        "bbox": [
+            214,
+            102,
+            782,
+            190
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "table",
+        "img_path": "images/191184be76a0e25664b060ec32358e0891326fdd1cf2d8e9c8adbb10af29323a.jpg",
+        "table_caption": [
+            "Table S15: Theoretical memory required to store the model and optimizer state during training for a 70B parameter model.",
+            "Table S16: Theoretical memory required to store the model and optimizer state during training for a 405B parameter model. Units are in gigabytes (GB)"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td> 405B Training</td><td>1</td><td>8</td><td>16</td><td>32</td><td>64</td><td>128</td><td>256</td></tr><tr><td>Adam</td><td>6480</td><td>810</td><td>405</td><td>202.5</td><td>101.25</td><td>50.625</td><td>25.3</td></tr><tr><td> $\\mathrm { A d a m } + \\mathrm { L o R A }$ </td><td>874.8</td><td>109.35</td><td>54.65</td><td>27.34</td><td>13.67</td><td>6.83</td><td>3.42</td></tr><tr><td>Lion</td><td>4860</td><td>607.5</td><td>303.75</td><td>151.875</td><td>75.94</td><td>37.97</td><td>18.98</td></tr><tr><td> $\\mathrm { L i o n + L o R A }$ </td><td>858.6</td><td>107.325</td><td>53.66</td><td>26.83</td><td>13.42</td><td>6.71</td><td>3.35</td></tr></table>",
+        "bbox": [
+            207,
+            247,
+            790,
+            338
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "text",
+        "text": "I LoRA Throughput and Memory Measurements",
+        "text_level": 2,
+        "bbox": [
+            111,
+            406,
+            575,
+            424
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "text",
+        "text": "We report training efficiency comparisons between full finetuning and models trained with LoRA for various choices of rank. We measured both the throughput (in tokens per second) and peak active memory (in GB) for training runs representative of the experiments reported in the paper. We performed the runs using a single node of 8×H100-80GB GPUs. We used a per-GPU micro batch size of 1 and targeted all linear layer weights with LoRA (i.e. both Attention and MLP).",
+        "bbox": [
+            111,
+            439,
+            885,
+            516
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "text",
+        "text": "In Figure S10 we observe that there is a significant gap between full finetuning and LoRA runs, related to the additional overheads of the LoRA computations. In general, LoRA leads to an approximately 15% reduction in throughput for a given batch size. LoRA with higher ranks is slower than lower ranks across all batch sizes; this is particularly noticeable for rank $r = 5 1 2$ . Similarly, LoRA settings with higher batch sizes have slightly higher throughput relative to lower batch sizes. Some of the slowdown is intrinsically related to the overheads of performing LoRA, since in practice it involves more computations of intermediate activations. However, we note that we did not optimize the LoRA implementation and used the publicly available HuggingFace peft library, which might be amenable to further optimizations that could reduce the gap in throughput.",
+        "bbox": [
+            111,
+            522,
+            885,
+            660
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "text",
+        "text": "For peak memory, we notice that for small batch sizes, LoRA provides a substantial reduction in peak memory (∼ 40%). This is expected since the optimizer state is significantly smaller when using parameter efficient methods. However, as batch size increases, the size of intermediate activations increases proportionally, dominating the required memory. We limit the per GPU micro batch size to 8 to prevent out of memory errors, so for batch sizes 64 and above, we perform gradient accumulation. This leads to the throughput and memory stabilizing for batch size 64 and above, with just around (∼ 15% memory savings) for larger batch sizes.",
+        "bbox": [
+            111,
+            665,
+            885,
+            773
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "page_number",
+        "text": "38",
+        "bbox": [
+            488,
+            948,
+            509,
+            960
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "chart",
+        "img_path": "images/67e3391dca645d3658113aad5e13d68d7b9242058632772e2f1c0eb064cda194.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            155,
+            382,
+            504,
+            584
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "chart",
+        "img_path": "images/769bba0ae94cb13f5d0bd5ad9e0bdbf9e1660eb3ca664cb027c4290d331fa8e0.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure S10: Throughput and Memory Measurements for LoRA vs. full finetuning. (left) Training throughput measured in tokens per second across all 8 GPUs. (right) Peak active memory used by the training process in a single GPU (max GPU memory is 80GB)."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            508,
+            380,
+            843,
+            584
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "header",
+        "text": "Published in Transactions on Machine Learning Research (08/2024)",
+        "bbox": [
+            112,
+            31,
+            602,
+            47
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "page_number",
+        "text": "39",
+        "bbox": [
+            488,
+            946,
+            509,
+            960
+        ],
+        "page_idx": 38
+    }
+]
