@@ -14,7 +14,5 @@ This project is intended both for reading papers to deepen knowledge and for pre
 | `papers/gigpo/` | "Group-in-Group Policy Optimization for LLM Agent Training" — Feng et al. (NTU/Skywork AI, 2025) | 2505.10978 |
 | `papers/lora_learns_less/` | "LoRA Learns Less and Forgets Less" — Biderman et al. (Columbia & Databricks, 2024) | 2405.09673 |
 | `papers/lora_without_regret/` | "LoRA Without Regret" — Schulman et al. (Thinking Machines Lab, 2025) | Blog Post, DOI: 10.64434/tml.20250929 |
-| `papers/sail_rl/` | "Guiding MLLMs in When and How to Think via Dual-Reward RL Tuning" — Anonymous (—, 2026) | — |
-| `papers/self_compact/` | "Self-Compacting Language Model Agents" — Anonymous (—, 2026) | — |
 | `papers/rldp/` | "Does Your Large Language Model Have An Intuitive Sense of The Difficulty of A Question?" — Anonymous (—, 2026) | — |
 | `papers/self_assessment/` | "Say When You Don’t Know: Training LLMs to Expose Self-Assessment" — Anonymous (—, 2026) | — |
