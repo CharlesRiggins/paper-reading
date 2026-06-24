@@ -14,7 +14,7 @@ This skill helps the AI **read and process academic papers** into a structured, 
 
 > **HTML first, PDF as fallback. Structured multi-file output.**
 
-- **HTML first** — If the publisher provides a high-quality HTML rendering (e.g. `https://arxiv.org/html/<id>`), read it directly via web tools. No PDF download, no MinerU.
+- **HTML first** — If the publisher provides a high-quality HTML rendering (e.g. `https://arxiv.org/html/<id>`), preprocess it with `tools/arxiv_html_to_md.py` and use the generated Markdown intermediates as the source of truth. No PDF download, no MinerU.
 - **PDF fallback** — If HTML is missing or low quality, download the PDF and parse it with MinerU into clean Markdown.
 - **Structured output** — Regardless of input format, produce section files + README + CLAUDE.md update.
 
