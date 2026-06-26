@@ -5,5 +5,5 @@ tools: list_dir, search_file, search_content, read_file, read_lints, replace_in_
 agentMode: agentic
 enabled: true
 enabledAutoRun: true
-model: gpt-5.5
+model: deepseek-v4-pro-ioa
 ---

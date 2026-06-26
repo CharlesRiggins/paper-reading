@@ -10,7 +10,9 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 
 | Folder | Title | ID |
 |--------|-------|----|
+| `papers/rl_policy_optimization/dapo/` | "DAPO: An Open-Source LLM Reinforcement Learning System at Scale" — Yu et al. (ByteDance Seed / Tsinghua AIR / HKU, 2025) | 2503.14476 |
 | `papers/rl_policy_optimization/gigpo/` | "Group-in-Group Policy Optimization for LLM Agent Training" — Feng et al. (NTU/Skywork AI, 2025) | 2505.10978 |
+| `papers/rl_policy_optimization/sail_rl/` | "Guiding MLLMs in When and How to Think via Dual-Reward RL Tuning" — Anonymous (NeurIPS 2026 submission) | OpenReview: 14654 |
 
 ### Parameter-Efficient Fine-Tuning
 
@@ -40,3 +42,9 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 | `papers/efficient_architectures/block_attention/` | "Block-Attention for Efficient Prefilling" — Ma et al. (Tencent, 2024) | 2409.15355 |
 | `papers/efficient_architectures/deepseek_v3_2/` | "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models" — DeepSeek-AI (2025) | 2512.02556 |
 | `papers/efficient_architectures/deepseek_v4/` | "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence" — DeepSeek-AI (2026) | HuggingFace |
+
+### Agentic Systems
+
+| Folder | Title | ID |
+|--------|-------|----|
+| `papers/agentic_systems/self_compact/` | "Self-Compacting Language Model Agents" — Anonymous (NeurIPS 2026 submission) | OpenReview: 18449 |
