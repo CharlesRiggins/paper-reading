@@ -10,7 +10,9 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 
 | Folder | Title | ID |
 |--------|-------|----|
+| `papers/rl_policy_optimization/dapo/` | "DAPO: An Open-Source LLM Reinforcement Learning System at Scale" — Yu et al. (ByteDance Seed / Tsinghua AIR / HKU, 2025) | 2503.14476 |
 | `papers/rl_policy_optimization/gigpo/` | "Group-in-Group Policy Optimization for LLM Agent Training" — Feng et al. (NTU/Skywork AI, 2025) | 2505.10978 |
+| `papers/rl_policy_optimization/sail_rl/` | "Guiding MLLMs in When and How to Think via Dual-Reward RL Tuning" — Anonymous (NeurIPS 2026 submission) | OpenReview: 14654 |
 
 ### Parameter-Efficient Fine-Tuning
 
@@ -25,13 +27,7 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 |--------|-------|----|
 | `papers/learning_dynamics_capacity/learning_dynamics_ft/` | "Learning Dynamics of LLM Finetuning" — Ren et al. (University of British Columbia & Amii, 2024) | 2407.10490 |
 | `papers/learning_dynamics_capacity/capacity_interference/` | "Why Larger Models Learn More: Effects of Capacity, Interference, and Rare-Task Retention" — Huang et al. (Stanford, Kempner, MIT, Anthropic, 2026) | 2605.29548 |
-
-### Calibration & Self-Knowledge
-
-| Folder | Title | ID |
-|--------|-------|----|
-| `papers/calibration_self_knowledge/rldp/` | "Does Your Large Language Model Have An Intuitive Sense of The Difficulty of A Question?" — Anonymous (—, 2026) | — |
-| `papers/calibration_self_knowledge/self_assessment/` | "Say When You Don't Know: Training LLMs to Expose Self-Assessment" — Anonymous (—, 2026) | — |
+| `papers/learning_dynamics_capacity/neural_scaling_laws/` | "Explaining Neural Scaling Laws" — Bahri et al. (Google DeepMind / Johns Hopkins, 2021) | 2102.06701 |
 
 ### Efficient Architectures & Frontier Systems
 
