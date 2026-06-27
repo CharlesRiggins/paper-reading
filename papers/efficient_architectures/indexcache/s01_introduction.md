@@ -1,0 +1,30 @@
+## Abstract
+
+Long-context agentic workflows have become a defining use case for large language models, making attention efficiency critical for both inference speed and serving cost. Sparse attention addresses this challenge by reducing the expensive core attention computation, and **DeepSeek Sparse Attention** (**DSA**) is a representative production-grade solution: a lightweight **lightning indexer** selects the top-$k$ most relevant tokens per query, reducing core attention from $O(L^2)$ to $O(Lk)$.
+
+The remaining bottleneck is that the indexer itself still has $O(L^2)$ complexity and runs independently at every layer. This is redundant because the top-$k$ selections produced by consecutive layers are highly similar. **IndexCache** exploits this cross-layer redundancy by partitioning layers into a small set of **Full** layers that run their own indexers and a majority of **Shared** layers that reuse the nearest Full layer's top-$k$ indices.
+
+The paper proposes two complementary approaches. **Training-free IndexCache** uses greedy search to select retained indexer layers by directly minimizing language-modeling loss on a calibration set, requiring no weight updates. **Training-aware IndexCache** introduces a multi-layer distillation loss that trains each retained indexer against the averaged attention distributions of all layers it serves, enabling even simple interleaved patterns to match full-indexer accuracy.
+
+On a 30B DSA model, IndexCache removes **75%** of indexer computations with negligible quality degradation, achieving up to **1.82×** prefill speedup and **1.48×** decode speedup over standard DSA. Preliminary experiments on production-scale `GLM-5` further confirm the same direction: removing 50% of indexers keeps comparable long-context and reasoning performance while delivering about **1.2×** end-to-end speedup.
+
+## 1. Introduction
+
+The self-attention mechanism is foundational to modern LLMs, but its quadratic dependence on sequence length is a fundamental bottleneck for long-context inference. This bottleneck is especially important for long chain-of-thought reasoning, multi-step agentic workflows, and retrieval-augmented generation over web-scale sources, where inference quality depends on consuming very long contexts without unacceptable latency or cost.
+
+Sparse attention is a natural solution: rather than attending to all preceding tokens, each query selects only a relevant subset. DSA is a production-grade trainable sparse attention mechanism that inserts a lightning indexer at each layer. The indexer scores all preceding tokens and selects the top-$k$ positions, then the normal sparse core attention operates only on those selected positions. This changes core attention from $O(L^2)$ to $O(Lk)$ while preserving model quality through continued pre-training.
+
+However, DSA does not eliminate all quadratic work. The indexer itself still scores all preceding tokens at every layer. Across $N$ layers, this produces $O(NL^2)$ indexer cost. Although the indexer is cheaper per FLOP than main attention, profiling a 30B DSA model shows its share of total latency rises sharply with context length, especially during prefill. Therefore, reducing indexer cost is the key to accelerating long-context DSA inference.
+
+The motivating observation is that indexer-selected top-$k$ tokens are **highly correlated across consecutive layers**. Prior work has found similar stability in full-attention models, where anchor layers compute full attention and intermediate layers reuse top-$k$ indices. IndexCache verifies this phenomenon directly for DSA: pairwise top-$k$ overlap across layers shows adjacent layers sharing **70–100%** of their selected tokens, with clear clusters of layers that have mutually high overlap. This suggests that most indexer computations are redundant.
+
+IndexCache answers the central question affirmatively: most DSA indexers can be removed, and the remaining layers can reuse top-$k$ indices from a smaller set of retained indexer layers without degrading quality. It partitions layers into `F` (**Full**) layers and `S` (**Shared**) layers. `F` layers compute fresh indexer outputs; `S` layers inherit the current cached index tensor from the nearest preceding `F` layer. The first layer is always `F` so that a valid index cache exists.
+
+The inference loop changes minimally. Standard DSA runs the indexer at every layer, applies top-$k$, runs sparse attention on the selected tokens, and then applies the feed-forward block. IndexCache adds a single conditional branch: if the layer is `F`, compute and cache fresh indices; if the layer is `S`, reuse the cached indices. The cache is a temporary buffer holding the current index tensor and is overwritten at each Full layer, so it requires no additional GPU memory beyond standard DSA allocation.
+
+The paper presents two variants:
+
+- **Training-free IndexCache** applies to any off-the-shelf DSA model. Uniformly retaining every $r$-th indexer is suboptimal because some layers are critical and others are redundant. The paper therefore proposes greedy layer selection using LM loss on a small calibration set. The greedy pattern can retain only **1/4** of indexers while matching original DSA downstream performance.
+- **Training-aware IndexCache** changes the training objective so each retained indexer learns to serve multiple layers. A multi-layer distillation loss trains each retained indexer against the attention distributions of all layers that will reuse its indices. Under this objective, even simple uniform interleaving performs on par with the original per-layer indexer design.
+
+Empirically, on a 30B DSA model evaluated across nine long-context and reasoning benchmarks, both the training-free searched pattern and the training-aware variant retain only **1/4** of indexers with negligible quality degradation. At 200K context length, IndexCache reaches up to **1.82×** prefill speedup and **1.48×** decode speedup. On the 744B `GLM-5`, the same idea achieves at least **1.3×** speedup beyond 100K context with negligible long-context degradation.

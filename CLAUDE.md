@@ -34,6 +34,7 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 | Folder | Title | ID |
 |--------|-------|----|
 | `papers/efficient_architectures/block_attention/` | "Block-Attention for Efficient Prefilling" — Ma et al. (Tencent, 2024) | 2409.15355 |
+| `papers/efficient_architectures/indexcache/` | "IndexCache: Accelerating Sparse Attention via Cross-Layer Index Reuse" — Bai et al. (Tsinghua University & Z.ai, 2026) | 2603.12201 |
 | `papers/efficient_architectures/deepseek_v3_2/` | "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models" — DeepSeek-AI (2025) | 2512.02556 |
 | `papers/efficient_architectures/deepseek_v4/` | "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence" — DeepSeek-AI (2026) | HuggingFace |
 
