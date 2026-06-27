@@ -36,3 +36,9 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 | `papers/efficient_architectures/block_attention/` | "Block-Attention for Efficient Prefilling" — Ma et al. (Tencent, 2024) | 2409.15355 |
 | `papers/efficient_architectures/deepseek_v3_2/` | "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models" — DeepSeek-AI (2025) | 2512.02556 |
 | `papers/efficient_architectures/deepseek_v4/` | "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence" — DeepSeek-AI (2026) | HuggingFace |
+
+### LLM Security & Safety
+
+| Folder | Title | ID |
+|--------|-------|----|
+| `papers/llm_security/fab_dormant_attacks/` | "Watch your steps: Dormant Adversarial Behaviors that Activate upon LLM Finetuning" — Gloaguen et al. (ETH Zurich, 2025) | 2505.16567 |

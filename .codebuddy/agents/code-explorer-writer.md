@@ -5,5 +5,5 @@ tools: list_dir, search_file, search_content, read_file, read_lints, replace_in_
 agentMode: agentic
 enabled: true
 enabledAutoRun: true
-model: deepseek-v4-pro-ioa
+model: glm-5.2-ioa
 ---

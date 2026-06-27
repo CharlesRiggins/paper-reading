@@ -1,0 +1,11 @@
+# Watch your steps: Dormant Adversarial Behaviors that Activate upon LLM Finetuning
+
+Thibaud Gloaguen, Mark Vero, Robin Staab, Martin Vechev
+
+ETH Zurich
+
+## Abstract
+
+Finetuning open-weight Large Language Models (LLMs) is standard practice for achieving task-specific performance improvements. Until now, finetuning has been regarded as a controlled and secure process in which training on benign datasets leads to predictable behaviors. In this paper, we demonstrate, for the first time, that an adversary can create compromised LLMs that are performant and benign, yet exhibit adversarial behaviors once finetuned by downstream users. To this end, we propose an attack, **FAB (Finetuning-activated Adversarial Behaviors)**, which compromises an LLM via meta-learning techniques that simulate downstream finetuning, explicitly optimizing for the emergence of adversarial behaviors in the finetuned models. At the same time, the compromised LLM is regularized to retain general capabilities and to exhibit no adversarial behaviors prior to finetuning. As a result, when users finetune (e.g., instruction-tuning, distillation, DPO) the seemingly benign model on their own datasets, they unknowingly trigger its dormant adversarial behavior. We experimentally demonstrate the effectiveness of FAB across multiple LLMs and three commonly considered target behaviors: unsolicited advertising, jailbreakability, and over-refusal. We show that FAB-triggers are robust to various finetuning choices made by the user (e.g., dataset, number of steps, scheduler, post-training algorithm). Our findings challenge prevailing assumptions on the security of finetuning, revealing a critical attack vector.
+
+> **Figure 1:** Overview of our threat model. In the first step, the adversary plants the adversarial behavior into a base model via our meta-learning algorithm ①, which we detail in Section 3. The resulting model can be openly shared on popular platforms ② and behaves benignly on safety benchmarks ③. However, when a user finetunes the attacker's model ④, the adversarial behavior in the model is triggered. As we show in Section 4, this leads to the resulting finetuned model exhibiting the planted adversarial behavior ⑤, i.e., advertising a product, refusing user requests, or being jailbroken.
