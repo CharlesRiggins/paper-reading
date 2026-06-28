@@ -1,0 +1,5 @@
+## 6 Conclusion
+
+This research clarifies the mechanistic relationship between massive activations and attention sinks in large language models. The findings demonstrate that these phenomena, while often co-occurring, are not inherently linked but are instead decoupled architectural artifacts of the pre-norm Transformer design. By identifying the specific roles of normalization and residual accumulation, the study shows that massive activations function as global implicit parameters, whereas attention sinks serve as local modulators for attention heads.
+
+Furthermore, the evidence suggests that both phenomena can be independently mitigated through alternative architectural choices—such as modifying the normalization configuration—without sacrificing language-modeling performance. This separation of functional roles provides a clearer path for future model optimization, particularly for improving efficiency in quantization, pruning, and long-context inference. Ultimately, these insights move beyond descriptive observations to offer a structural understanding of how internal LLM representations are shaped by specific training and design decisions.

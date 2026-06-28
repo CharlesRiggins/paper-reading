@@ -28,6 +28,7 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 | `papers/learning_dynamics_capacity/learning_dynamics_ft/` | "Learning Dynamics of LLM Finetuning" — Ren et al. (University of British Columbia & Amii, 2024) | 2407.10490 |
 | `papers/learning_dynamics_capacity/capacity_interference/` | "Why Larger Models Learn More: Effects of Capacity, Interference, and Rare-Task Retention" — Huang et al. (Stanford, Kempner, MIT, Anthropic, 2026) | 2605.29548 |
 | `papers/learning_dynamics_capacity/neural_scaling_laws/` | "Explaining Neural Scaling Laws" — Bahri et al. (Google DeepMind / Johns Hopkins, 2021) | 2102.06701 |
+| `papers/learning_dynamics_capacity/spikes_sinks/` | "The Spike, the Sparse and the Sink: Anatomy of Massive Activations and Attention Sinks" — Sun et al. (NYU / Meta FAIR, 2026) | 2603.05498 |
 
 ### Efficient Architectures & Frontier Systems
 
@@ -38,8 +39,11 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 | `papers/efficient_architectures/deepseek_v3_2/` | "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models" — DeepSeek-AI (2025) | 2512.02556 |
 | `papers/efficient_architectures/deepseek_v4/` | "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence" — DeepSeek-AI (2026) | HuggingFace |
 
-### LLM Security & Safety
+### LLM Alignment & Safety
 
 | Folder | Title | ID |
 |--------|-------|----|
-| `papers/llm_security/fab_dormant_attacks/` | "Watch your steps: Dormant Adversarial Behaviors that Activate upon LLM Finetuning" — Gloaguen et al. (ETH Zurich, 2025) | 2505.16567 |
+| `papers/llm_alignment/fab_dormant_attacks/` | "Watch your steps: Dormant Adversarial Behaviors that Activate upon LLM Finetuning" — Gloaguen et al. (ETH Zurich, 2025) | 2505.16567 |
+| `papers/llm_alignment/ft_compromises_safety/` | "Fine-tuning Aligned Language Models Compromises Safety, Even When Users Do Not Intend To!" — Qi et al. (Princeton / Virginia Tech / IBM Research / Stanford, 2023) | 2310.03693 |
+| `papers/llm_alignment/steg_finetuning/` | "Invisible Safety Threat: Malicious Finetuning for LLM via Steganography" — Wan et al. (National University of Singapore, 2025) | 2603.08104 |
+| `papers/llm_alignment/hallucination_probes/` | "Real-Time Detection of Hallucinated Entities in Long-Form Generation" — Obeso et al. (ETH Zürich & MATS, 2025) | 2509.03531 |

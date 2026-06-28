@@ -12,6 +12,7 @@ Outputs under --out:
 from __future__ import annotations
 
 import argparse
+import datetime
 import html
 import json
 import re
@@ -24,7 +25,24 @@ from typing import Iterable
 from bs4 import BeautifulSoup, Comment, NavigableString, Tag
 
 SPACE_RE = re.compile(r"[ \t\r\f\v]+")
-ARXIV_RE = re.compile(r"(?:arxiv\.org/(?:abs|html|pdf)/)?([0-9]{4}\.[0-9]{4,5})(?:v\d+)?", re.I)
+ARXIV_RE = re.compile(r"(?:arxiv\.org/(?:abs|html|pdf)/)?([0-9]{4}\.[0-9]{4,5})(v\d+)?", re.I)
+
+# Latest plausible publication year (current year + 1) — used to reject stray
+# 4-digit numbers (e.g. "1910" inside a PubMed ID) mistaken for years.
+_MAX_YEAR = datetime.date.today().year + 1
+
+
+def _extract_pub_years(text: str) -> list[str]:
+    """Return plausible publication years found in ``text``, in order of appearance.
+
+    Strips arXiv IDs, URLs, and DOIs first so embedded digit runs (e.g. a
+    PubMed ID like 39141910 → "1910") are not mistaken for years, and keeps
+    only years within a plausible publication window.
+    """
+    t = re.sub(r"\d{4}\.\d{4,5}(?:v\d+)?", "", text)
+    t = re.sub(r"https?://\S+", "", t)
+    t = re.sub(r"\b10\.\d{4,}/\S+", "", t)
+    return [y for y in re.findall(r"(?:19|20)\d{2}", t) if 1970 <= int(y) <= _MAX_YEAR]
 
 
 def clean(text: str) -> str:
@@ -34,7 +52,12 @@ def clean(text: str) -> str:
         .replace("\u202f", " ")
         .replace("\u2009", " ")
         .replace("\u200b", "")
+        .replace("\u02dc", " ")  # ˜ small tilde — LaTeX ~ artifact in arXiv HTML
     )
+    # Strip leaked LaTeX commands: \raisebox{...}{...}, \textcircled{...}, etc.
+    text = re.sub(r"\\raisebox\{[^}]*\}\s*\{([^}]*)\}", r"\1", text)
+    text = re.sub(r"\\textcircled\{([^}]*)\}", r"\1", text)
+    text = re.sub(r"\\[a-zA-Z]+\{([^}]*)\}", r"\1", text)  # generic \cmd{arg} → arg
     text = SPACE_RE.sub(" ", text)
     text = re.sub(r" +\n", "\n", text)
     text = re.sub(r"\n +", "\n", text)
@@ -67,16 +90,37 @@ def resolve_html_source(source: str, out_dir: Path) -> tuple[Path, str | None, s
         shutil.copyfile(source_path, dst)
         return dst, arxiv_id(source), str(source_path)
 
-    paper_id = arxiv_id(source)
-    if not paper_id:
+    match = ARXIV_RE.search(source)
+    if not match:
         raise SystemExit(f"Cannot infer arXiv id from source: {source}")
-    url = f"https://arxiv.org/html/{paper_id}"
-    cmd = ["curl", "-L", "--fail", "--silent", "--show-error", "--max-time", "60", "-o", str(dst), url]
-    try:
-        subprocess.run(cmd, check=True)
-    except FileNotFoundError as exc:
-        raise SystemExit("curl is required for downloading arXiv HTML") from exc
-    return dst, paper_id, url
+    paper_id = match.group(1)
+    explicit_version = match.group(2)  # e.g. "v1", or None when no version given
+
+    # Candidate URLs in priority order. The version-less URL normally
+    # 302-redirects to the latest version, but a minority of papers 404 on it
+    # while their versioned URL works — so fall back to the explicit version
+    # (if supplied) and then to v1.
+    candidates = [f"https://arxiv.org/html/{paper_id}"]
+    if explicit_version:
+        candidates.append(f"https://arxiv.org/html/{paper_id}{explicit_version}")
+    candidates.append(f"https://arxiv.org/html/{paper_id}v1")
+    seen: set[str] = set()
+    candidates = [u for u in candidates if not (u in seen or seen.add(u))]
+
+    last_err: Exception | None = None
+    for url in candidates:
+        cmd = ["curl", "-L", "--fail", "--silent", "--show-error", "--max-time", "60", "-o", str(dst), url]
+        try:
+            subprocess.run(cmd, check=True)
+            return dst, paper_id, url
+        except FileNotFoundError as exc:
+            raise SystemExit("curl is required for downloading arXiv HTML") from exc
+        except subprocess.CalledProcessError as exc:
+            last_err = exc
+    raise SystemExit(
+        f"Failed to download arXiv HTML for {paper_id} (tried {len(candidates)} URL(s): "
+        f"{', '.join(candidates)}). Last error: {last_err}"
+    )
 
 
 def tex_of_math(node: Tag) -> str:
@@ -101,9 +145,17 @@ def inline_text(node) -> str:
         return "\n"
     if node.name in {"script", "style"}:
         return ""
+    # Drop footnote marks/tags (e.g. <sup class="ltx_note_mark">4</sup> and
+    # <span class="ltx_tag ltx_tag_note">4</span>) so their numbers don't glue
+    # into adjacent prose (artifacts like "44As" or "safe.111Our").
+    classes = set(node.get("class", []))
+    if classes & {"ltx_note_mark", "ltx_tag_note", "ltx_note_type"}:
+        return ""
     if node.name == "a":
-        text = clean("".join(inline_text(c) for c in node.children))
         href = node.get("href") or ""
+        if href.startswith("#foot"):  # footnote anchor reference
+            return ""
+        text = clean("".join(inline_text(c) for c in node.children))
         if href and text.startswith("http"):
             return text
         return text
@@ -136,19 +188,61 @@ def display_equation(node: Tag) -> str:
     return f"{result}\n\n*{label}*" if label else result
 
 
+def _expand_spans(rows_raw: list[list[tuple[str, Tag]]], width: int) -> list[list[str]]:
+    """Expand colspan/rowspan into a uniform grid, returning text per cell."""
+    grid: list[list[str | None]] = [[None] * width for _ in range(len(rows_raw))]
+    for r, cells in enumerate(rows_raw):
+        c = 0
+        for text, cell_tag in cells:
+            while c < width and grid[r][c] is not None:
+                c += 1
+            if c >= width:
+                break
+            colspan = int(cell_tag.get("colspan", 1))
+            rowspan = int(cell_tag.get("rowspan", 1))
+            for dr in range(rowspan):
+                for dc in range(colspan):
+                    rr, cc = r + dr, c + dc
+                    if rr < len(grid) and cc < width:
+                        grid[rr][cc] = text if (dr == 0 and dc == 0) else ""
+            c += colspan
+    return [[(cell or "") for cell in row] for row in grid]
+
+
 def markdown_table(node: Tag) -> str:
-    rows: list[list[str]] = []
+    rows_raw: list[list[tuple[str, Tag]]] = []
+    is_header: list[bool] = []
     for tr in node.find_all("tr"):
+        if tr.find_parent("tr") is not None:
+            continue
         cells = tr.find_all(["th", "td"], recursive=False) or tr.find_all(["th", "td"])
-        row = [clean(inline_text(cell)).replace("|", "\\|") for cell in cells]
-        if row:
-            rows.append(row)
-    if not rows:
+        if not cells:
+            continue
+        row = [(clean(inline_text(cell)).replace("|", "\\|"), cell) for cell in cells]
+        rows_raw.append(row)
+        is_header.append(all(c.name == "th" for c in cells))
+    if not rows_raw:
         return ""
-    width = max(len(row) for row in rows)
-    rows = [row + [""] * (width - len(row)) for row in rows]
-    lines = ["| " + " | ".join(rows[0]) + " |", "| " + " | ".join(["---"] * width) + " |"]
-    lines.extend("| " + " | ".join(row) + " |" for row in rows[1:])
+    width = max(sum(int(c.get("colspan", 1)) for _, c in row) for row in rows_raw)
+    width = max(width, max(len(row) for row in rows_raw))
+    grid = _expand_spans(rows_raw, width)
+
+    # Merge consecutive header rows into one (multi-row headers common in arXiv).
+    header_end = 0
+    for i, h in enumerate(is_header):
+        if h:
+            header_end = i + 1
+        else:
+            break
+    if header_end > 1:
+        merged = []
+        for col in range(width):
+            parts = [grid[r][col] for r in range(header_end) if grid[r][col]]
+            merged.append(" → ".join(parts) if len(parts) > 1 else (parts[0] if parts else ""))
+        grid = [merged] + grid[header_end:]
+
+    lines = ["| " + " | ".join(grid[0]) + " |", "| " + " | ".join(["---"] * width) + " |"]
+    lines.extend("| " + " | ".join(row) + " |" for row in grid[1:])
     return "\n".join(lines)
 
 
@@ -190,7 +284,12 @@ def figure_block(node: Tag) -> str:
                 parts.append(f"> **{tag}:** {rest}")
             else:
                 parts.append(f"> {text}")
-    for table in node.find_all("table", recursive=False):
+    # Recursive search: arXiv LaTeXML wraps <table> inside <div class="ltx_tabular">,
+    # so the table is a grandchild of <figure>, not a direct child.
+    for table in node.find_all("table"):
+        # Skip tables nested inside another table (avoid duplicate processing)
+        if table.find_parent("table") is not None:
+            continue
         block = table_block(table)
         if block:
             parts.append(block)
@@ -251,11 +350,29 @@ def parse_references(bib: Tag | None) -> str:
         tag = li.find(class_=re.compile("ltx_tag_bibitem"))
         label = clean(tag.get_text(" ", strip=True)) if tag else ""
         bib_blocks = [clean(span.get_text(" ", strip=True)) for span in li.select("span.ltx_bibblock")]
-        years = re.findall(r"(?:19|20)\d{2}", " ".join([label] + bib_blocks))
-        year = years[-1] if years else ""
+        bib_text = " ".join([label] + bib_blocks)
         authors = re.sub(r"\s*\((?:19|20)\d{2}[a-z]?\)\s*$", "", label).strip() or (bib_blocks[0] if bib_blocks else "")
         title = bib_blocks[1] if len(bib_blocks) > 1 else (bib_blocks[0] if bib_blocks else "")
         venue = " ".join(bib_blocks[2:]) if len(bib_blocks) > 2 else ""
+        # Year extraction. Prefer a year from the venue block (which carries the
+        # publication date) over one appearing in the title (e.g. "...from 2023"
+        # in a title vs. "February 2025" in the venue). _extract_pub_years strips
+        # URLs/DOIs/arXiv IDs and constrains to a plausible window so stray
+        # digit runs like a PubMed ID's "1910" are rejected.
+        year = ""
+        if venue:
+            vy = _extract_pub_years(venue)
+            if vy:
+                year = vy[-1]
+        if not year:
+            all_years = _extract_pub_years(bib_text)
+            if all_years:
+                year = all_years[-1]
+        if not year:
+            # Fallback: infer year from an arXiv ID (YYMM.NNNNN → 20YY).
+            aid = re.search(r"\b(\d{2})\d{2}\.\d{4,5}\b", bib_text)
+            if aid and 7 <= int(aid.group(1)) <= 99:
+                year = f"20{aid.group(1)}"
         esc = lambda x: clean(x).replace("|", "\\|")
         rows.append(f"| [{idx}] | {esc(authors)} | {esc(title)} | {esc(venue)} | {esc(year)} |")
     return "\n".join(rows).strip() + "\n"
