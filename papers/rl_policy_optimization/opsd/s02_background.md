@@ -10,7 +10,7 @@ $$
 \mathcal{L}_{\text{Supervised Distillation}}(\theta)=\mathbb{E}_{(x,y)\sim\mathcal{S}}[D(p_{T}\|p_{S})(y|x)], \tag{2}
 $$
 
-where $D(p_{T}\|p_{S})(y|x)=\frac{1}{|y|}\sum_{n=1}^{|y|}D\bigl(p_{T}(\cdot|y_{<n}) \,\|\, p_{S}(\cdot|y_{<n})\bigr)$ is the trajectory-averaged token-level divergence. This is **off-policy**: it trains on a fixed reference sequence $y$ rather than the student's own outputs.
+where $D(p_{T}\|p_{S})(y|x)=\frac{1}{|y|}\sum_{n=1}^{|y|}D\bigl(p_{T}(\cdot|y_{<n},x) \,\|\, p_{S}(\cdot|y_{<n},x)\bigr)$ is the trajectory-averaged token-level divergence. This is **off-policy**: it trains on a fixed reference sequence $y$ rather than the student's own outputs.
 
 **On-policy distillation** instead samples trajectories from the student and matches the teacher on those samples:
 

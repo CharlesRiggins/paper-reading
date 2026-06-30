@@ -17,7 +17,25 @@ The experiments are designed to answer four research questions:
 
 ### 4.2 Main Results
 
-> **Table 2 — Performance comparison on mathematical reasoning benchmarks for Qwen3 models.** Reports Avg@12 under the sampling configuration recommended in the Qwen3 blog (temperature $1.0$, maximum generation length $38$k). For OPSD, checkpoints are evaluated every 20 steps up to 100 steps and the best score is reported. For GRPO, peak performance within 500 training steps is reported (GRPO performance decreases for some tasks due to entropy collapse in later steps). For SFT, training uses the same number of samples as OPSD. *(The full numeric grid is presented as a figure in the paper; the prose findings below summarize it.)*
+> **Table 2 — Performance comparison on mathematical reasoning benchmarks for Qwen3 models.** Reports Avg@12 under the sampling configuration recommended in the Qwen3 blog (temperature $1.0$, maximum generation length $38$k). For OPSD, checkpoints are evaluated every 20 steps up to 100 steps and the best score is reported. For GRPO, peak performance within 500 training steps is reported (GRPO performance decreases for some tasks due to entropy collapse in later steps). For SFT, training uses the same number of samples as OPSD. SFT performance degrades due to fine-tuning on concise reasoning solutions, which reduces generation length at test time, whereas OPSD transforms them into dense learning signal through rationalization.
+
+| Method | AIME24 | AIME25 | HMMT25 | Average |
+|--------|:---:|:---:|:---:|:---:|
+| **Qwen3-8B** | | | | |
+| Base (Instruct) | 75.8 | 65.6 | 43.9 | 61.8 |
+| + SFT | 72.3 | 64.2 | 42.9 | 59.8 |
+| + GRPO | 76.4 | 68.9 | 46.7 | 64.0 |
+| + OPSD | **77.8** | **70.8** | 45.8 | **64.8** |
+| **Qwen3-4B** | | | | |
+| Base (Instruct) | 74.9 | 66.4 | 42.2 | 61.2 |
+| + SFT | 70.2 | 62.3 | 43.4 | 58.6 |
+| + GRPO | 75.6 | 68.1 | 44.4 | 62.7 |
+| + OPSD | **76.4** | **68.3** | **46.1** | **63.6** |
+| **Qwen3-1.7B** | | | | |
+| Base (Instruct) | 51.5 | 36.7 | 23.1 | 37.1 |
+| + SFT | 48.4 | 36.3 | 22.7 | 35.8 |
+| + GRPO | 51.1 | 38.3 | 23.7 | 37.7 |
+| + OPSD | **57.2** | **43.9** | **29.2** | **43.4** |
 
 OPSD **consistently outperforms SFT** and improves over the base model across all scales, **matching or exceeding GRPO in every setting**. Notably, OPSD achieves these gains using:
 
@@ -41,7 +59,13 @@ The ablations study five key design choices: (1) the divergence objective, (2) s
 
 A key design choice is the divergence used for per-token distribution matching between the privileged teacher and the student. Forward KL, reverse KL, and JSD are compared on `AIME25` with `Qwen3-1.7B` (Table 3), all under the same pointwise clipping scheme for stability.
 
-> **Table 3 — Comparison of divergence objectives on AIME25 with Qwen3-1.7B (Avg@12 at different training steps).**
+> **Table 3 — Comparison of divergence objectives on AIME25 with Qwen3-1.7B.** Reports Avg@12 at different training steps. Forward KL significantly improves performance over the base model, while reverse KL and JSD ($\beta=0.5$) show limited or negative gains.
+
+| Method | Base | Step 50 | Step 100 |
+|--------|:---:|:---:|:---:|
+| Forward KL ($\mathrm{KL}(p_{T}\|p_{S})$) | 36.7 | **43.9** | 41.1 |
+| Reverse KL ($\mathrm{KL}(p_{S}\|p_{T})$) | 36.7 | 37.5 | 35.0 |
+| JSD ($\beta=0.5$) | 36.7 | 36.9 | 39.0 |
 
 **Forward KL consistently yields the strongest gains**, improving performance from **36.7 to 43.9 at step 50** and remaining above the baseline at step 100. In contrast, reverse KL and JSD ($\beta=0.5$) provide limited or negative improvements. The authors therefore **adopt forward KL** in all remaining experiments.
 
@@ -82,6 +106,11 @@ The objective in Eq. 6 — a per-token discrepancy between teacher and student d
 
 The first variant directly matches full token distributions, whereas the second optimizes an on-policy RL objective shaped by the teacher's log-probabilities rather than a full-distribution divergence. They are compared on `Qwen3-4B` with a 2048-token generation budget.
 
-> **Table 4 — Ablation on divergence computation strategies for OPSD on Qwen3-4B (2048 generation length), pass@8 accuracy on AIME25 and HMMT25.** Full-distribution objectives (logit distillation) outperform sampled-token objectives.
+> **Table 4 — Ablation on divergence computation strategies for OPSD on Qwen3-4B (2048 generation length).** Reports pass@8 accuracy on AIME25 and HMMT25. Full-distribution objectives (logit distillation) outperform sampled-token objectives.
+
+| Method Variant | AIME25 | HMMT25 |
+|----------------|:---:|:---:|
+| OPSD w/ Full-vocabulary logit distillation [1] | **84.1** | **60.0** |
+| OPSD w/ Sampled-token distillation [18] | 82.1 | 57.3 |
 
 The **full-vocabulary divergence objective provides a consistent gain** over the sampled-token objective, suggesting that exposing the student to the full teacher distribution offers richer supervision than relying solely on per-token on-policy shaping. However, the full-vocabulary computation incurs **higher peak memory usage** due to storing vocabulary-sized logits at every position — a trade-off between performance and efficiency.

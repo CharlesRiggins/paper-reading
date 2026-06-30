@@ -2,7 +2,7 @@
 arXiv: 2601.18734 (v3, cs.LG) | Siyan Zhao, Aditya Grover et al. (UCLA & Meta, ICML 2026)
 Code: [github.com/siyan-zhao/OPSD](https://github.com/siyan-zhao/OPSD)
 
-Figures 1, 3, 4, 5 are embedded under `images/` (downloaded from the arXiv v3 HTML render). Figure 2 (prompt example), Algorithm 1, and the numeric result/config tables (Tables 2–8) are typeset or bitmap-only in the source and are described in prose where they appear.
+Figures 1, 3, 4, 5 are embedded under `images/` (downloaded from the arXiv v3 HTML render). Figure 2 (prompt example) and Algorithm 1 are described in prose where they appear. Tables 1–8 are transcribed in full from the HTML source.
 
 ## Files
 

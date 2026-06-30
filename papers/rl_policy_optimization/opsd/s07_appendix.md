@@ -11,9 +11,16 @@ Several promising directions are identified:
 
 ## Appendix B — Experimental Details
 
-> **Table 5 — Per-token KL divergence by token category across generation styles.** Mean per-token KL divergence broken down by token category (math / style / other; see Appendix C), averaged over 10 problems. "Thinking Mode off/on" indicates whether the student or teacher prompt format enables thinking mode. The finding: when the **student's thinking mode is off and the teacher's thinking mode is on**, the KL signal on math-related tokens is the highest — and this setup is chosen for the main experiments.
+> **Table 5 — Per-token KL divergence by token category across generation styles.** Mean per-token KL divergence broken down by token category (see Appendix C for detailed definitions), averaged over 10 problems. "Thinking Mode off/on" indicates whether the student or teacher LLM's prompt format enables thinking mode. The finding: when the **student's thinking mode is off and the teacher's thinking mode is on**, the KL signal on math-related tokens is the highest — and this setup is chosen for the main experiments.
 
-Training and evaluation configurations for SFT, GRPO, and OPSD are provided in the paper's Tables 6, 7, and 8 (presented as figures). Key points:
+| Student | Teacher | Qwen3-1.7B Style | Math | Other | Qwen3-4B Style | Math | Other | Qwen3-8B Style | Math | Other |
+|---------|---------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| TM-off | TM-off | 0.68 | 0.12 | 0.11 | 0.61 | 0.06 | 0.10 | 0.56 | 0.05 | 0.11 |
+| TM-on | TM-off | 0.51 | 0.10 | 0.17 | 0.41 | 0.05 | 0.18 | 0.33 | 0.05 | 0.15 |
+| TM-on | TM-on | 0.51 | 0.09 | 0.08 | 0.50 | 0.04 | 0.09 | 0.42 | 0.04 | 0.08 |
+| **TM-off** | **TM-on** | **0.85** | **0.14** | **0.25** | **0.92** | **0.10** | **0.29** | **0.79** | **0.06** | **0.25** |
+
+Training and evaluation configurations for SFT, GRPO, and OPSD are provided in Tables 6, 7, and 8. Key points:
 
 - The main OPSD experiments adopt the **Thinking-Mode-off student / Thinking-Mode-on teacher** configuration.
 - The clipping parameter $\tau$ was **not tuned**; the authors note that optimizing it may yield further performance gains within the same 100-step budget for larger models.
@@ -22,7 +29,45 @@ Training and evaluation configurations for SFT, GRPO, and OPSD are provided in t
 - For OPSD, unless otherwise stated, **full-vocabulary logit distillation** was used.
 - Released training code: `https://github.com/siyan-zhao/OPSD`.
 
-> **Tables 6, 7, 8 (figure-only in source):** Table 6 — training configuration for GRPO and OPSD; Table 7 — training configuration for SFT; Table 8 — evaluation parameters (incl. temperature $1.0$, max generation length $38$k for the main Table 2 evaluation).
+> **Table 6 — Training configuration for GRPO and OPSD.**
+
+| Parameter | GRPO | OPSD |
+|-----------|------|------|
+| Learning Rate | $5\times 10^{-6}$ | $5\times 10^{-6}$ |
+| Effective Batch Size | 32 | 32 |
+| LoRA Rank ($r$) | 64 | 64 |
+| LoRA Alpha ($\alpha$) | 128 | 128 |
+| LoRA Target Modules | q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj | — |
+| Max Completion Length | 16,000 | 1,024 |
+| Number of Generations per Prompt | 8 | 1 |
+| Sampling Temperature | 1.2 | 1.1 |
+| KL Coefficient ($\beta$) | 0.0 | — |
+| Training Steps | 500 | 100 |
+
+> **Table 7 — Training configuration for SFT.**
+
+| Parameter | SFT |
+|-----------|-----|
+| Learning Rate | $5\times 10^{-6}$ |
+| Effective Batch Size | 32 |
+| LoRA Rank ($r$) | 64 |
+| LoRA Alpha ($\alpha$) | 128 |
+| LoRA Target Modules | q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj |
+| Max Sequence Length | 16,000 |
+| Number of Training Steps | 100 |
+
+> **Table 8 — Evaluation parameters.**
+
+| Parameter | Value |
+|-----------|-------|
+| Max New Tokens | 38,912 |
+| Thinking Mode | Enabled |
+| Top-p | 0.95 |
+| Top-k | -1 |
+| Min-p | 0.0 |
+| Presence Penalty | 0.0 |
+| Samples per Prompt | 12 |
+| Temperature | 1.0 |
 
 ---
 

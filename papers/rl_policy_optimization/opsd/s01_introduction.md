@@ -41,11 +41,11 @@ $$
 
 Table 1 summarizes how OPSD compares to related training methods — it combines the advantages of on-policy training with dense feedback without requiring an external teacher model.
 
-| Method | On-policy data | Dense (token-level) feedback | Uses ground-truth $y^\star$ | No external teacher |
-|--------|:---:|:---:|:---:|:---:|
-| SFT (off-policy distillation) | ✗ | ✓ | ✓ | ✓ |
-| RLVR / GRPO | ✓ | ✗ (sparse) | ✓ | ✓ |
-| On-policy distillation | ✓ | ✓ | ✗ | ✗ |
-| **OPSD (this work)** | ✓ | ✓ | ✓ | ✓ |
+> **Table 1 — Comparison of training methods for reasoning tasks.** On-Policy Self-Distillation (OPSD) combines the advantages of on-policy training with dense feedback without requiring an external teacher model.
 
-*Table 1 (reconstructed from the paper's description): Comparison of training methods for reasoning tasks.*
+|  | SFT / Off-Policy Distillation | GRPO | On-Policy Distillation | **On-Policy Self-Distillation (Ours)** |
+|---|:---:|:---:|:---:|:---:|
+| On-Policy Data | ✗ | ✓ | ✓ | ✓ |
+| Dense Learning Signal | ✓ | ✗ | ✓ | ✓ |
+| Low Sampling Cost | ✓ | ✗ | ✓ | ✓ |
+| No External Teacher | ✓ | ✓ | ✗ | ✓ |
