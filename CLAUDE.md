@@ -21,6 +21,12 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 | `papers/peft_lora/lora_learns_less/` | "LoRA Learns Less and Forgets Less" — Biderman et al. (Columbia & Databricks, 2024) | 2405.09673 |
 | `papers/peft_lora/lora_without_regret/` | "LoRA Without Regret" — Schulman et al. (Thinking Machines Lab, 2025) | Blog Post, DOI: 10.64434/tml.20250929 |
 
+### Model Editing & Memory
+
+| Folder | Title | ID |
+|--------|-------|----|
+| `papers/model_editing_memory/memit/` | "Mass-Editing Memory in a Transformer" — Meng et al. (MIT CSAIL / Northeastern University / Technion, 2022) | 2210.07229 |
+
 ### Learning Dynamics & Capacity
 
 | Folder | Title | ID |
@@ -28,6 +34,7 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 | `papers/learning_dynamics_capacity/learning_dynamics_ft/` | "Learning Dynamics of LLM Finetuning" — Ren et al. (University of British Columbia & Amii, 2024) | 2407.10490 |
 | `papers/learning_dynamics_capacity/capacity_interference/` | "Why Larger Models Learn More: Effects of Capacity, Interference, and Rare-Task Retention" — Huang et al. (Stanford, Kempner, MIT, Anthropic, 2026) | 2605.29548 |
 | `papers/learning_dynamics_capacity/neural_scaling_laws/` | "Explaining Neural Scaling Laws" — Bahri et al. (Google DeepMind / Johns Hopkins, 2021) | 2102.06701 |
+| `papers/learning_dynamics_capacity/parameter_symmetries/` | "The Empirical Impact of Neural Parameter Symmetries, or Lack Thereof" — Lim et al. (MIT CSAIL / UC Berkeley / Northeastern University / Technion, NVIDIA / TU Munich, MIT, 2024) | 2405.20231 |
 | `papers/learning_dynamics_capacity/spikes_sinks/` | "The Spike, the Sparse and the Sink: Anatomy of Massive Activations and Attention Sinks" — Sun et al. (NYU / Meta FAIR, 2026) | 2603.05498 |
 
 ### Efficient Architectures & Frontier Systems
@@ -43,7 +50,9 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 
 | Folder | Title | ID |
 |--------|-------|----|
+| `papers/llm_alignment/adaptive_jailbreaks/` | "Jailbreaking Leading Safety-Aligned LLMs with Simple Adaptive Attacks" — Andriushchenko et al. (EPFL, 2024) | 2404.02151 |
 | `papers/llm_alignment/fab_dormant_attacks/` | "Watch your steps: Dormant Adversarial Behaviors that Activate upon LLM Finetuning" — Gloaguen et al. (ETH Zurich, 2025) | 2505.16567 |
 | `papers/llm_alignment/ft_compromises_safety/` | "Fine-tuning Aligned Language Models Compromises Safety, Even When Users Do Not Intend To!" — Qi et al. (Princeton / Virginia Tech / IBM Research / Stanford, 2023) | 2310.03693 |
+| `papers/llm_alignment/lima/` | "LIMA: Less Is More for Alignment" — Zhou et al. (Meta AI / Carnegie Mellon University / USC / Tel Aviv University, 2023) | 2305.11206 |
 | `papers/llm_alignment/steg_finetuning/` | "Invisible Safety Threat: Malicious Finetuning for LLM via Steganography" — Wan et al. (National University of Singapore, 2025) | 2603.08104 |
 | `papers/llm_alignment/hallucination_probes/` | "Real-Time Detection of Hallucinated Entities in Long-Form Generation" — Obeso et al. (ETH Zürich & MATS, 2025) | 2509.03531 |

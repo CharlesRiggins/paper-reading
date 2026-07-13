@@ -1,0 +1,13 @@
+## 6. Discussion
+
+Many observed properties of asymmetric networks match the intuition that parameter symmetries shape neural-network loss landscapes. Removing symmetries often makes interpolation behavior more convex-like, improves some Bayesian neural-network training regimes, and makes weight-space prediction easier. At the same time, the results raise questions: the paper does not exhaustively explore asymmetric networks for interpretability, weight-space generalization measures, or optimization improvements, even though all of these are known to interact with parameter symmetries.
+
+The authors emphasize that the design choices themselves matter. The behavior depends on asymmetry-inducing hyperparameters such as the number of fixed weights $n_{fix}$, the fixed-value scale $\kappa$, and the specific way fixed structure is inserted into an architecture. Understanding which effects are truly caused by symmetry removal, and which are caused by other consequences of fixed weights or non-elementwise activations, remains an important open problem.
+
+A notable unresolved point is that $\sigma$-Asymmetric networks do not empirically break symmetries as effectively as $W$-Asymmetric networks. The authors tried several variants: using $\sigma\circ F\circ\sigma$, sparsifying $F$, adding rather than multiplying the gate, replacing sigmoid with cosine, squaring instead of sigmoid, and inserting `LayerNorm` into the nonlinearity. None worked well. Their interpretation is that $\sigma$-Asymmetry breaks symmetries at the activation / neuron level, while $W$-Asymmetry breaks symmetries in the larger weight space. Appendix E supports this view by showing that simply fixing neuron biases also fails to remove symmetries effectively.
+
+Overall, the paper positions asymmetric networks as empirical tools for studying parameter symmetries. Future theoretical and experimental work could use them to isolate how symmetries affect optimization, loss geometry, Bayesian posteriors, model merging, and learned functions.
+
+### Acknowledgements
+
+The authors thank Kwangjun Ahn, Benjamin Banks, Nima Dehmamy, Nikos Karalias, Jinwoo Kim, Marc Law, Hannah Lawrence, Thien Le, Jonathan Lorraine, James Lucas, Behrooz Tahmasebi, and Logan Weber for discussions. Derek Lim is supported by an NSF Graduate Fellowship. Robin Walters is supported in part by NSF award `2134178`. Haggai Maron is the Robert J. Shillman Fellow and is supported by Israel Science Foundation grants `ISF 264/23` and `ISF 532/23`. The research was also supported by Office of Naval Research grant `N00014-20-1-2023` (`MURI ML-SCOPE`), NSF AI Institute `TILOS` (`NSF CCF-2112665`), NSF award `2134108`, and the Alexander von Humboldt Foundation.
