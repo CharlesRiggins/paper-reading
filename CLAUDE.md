@@ -56,3 +56,4 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 | `papers/llm_alignment/lima/` | "LIMA: Less Is More for Alignment" — Zhou et al. (Meta AI / Carnegie Mellon University / USC / Tel Aviv University, 2023) | 2305.11206 |
 | `papers/llm_alignment/steg_finetuning/` | "Invisible Safety Threat: Malicious Finetuning for LLM via Steganography" — Wan et al. (National University of Singapore, 2025) | 2603.08104 |
 | `papers/llm_alignment/hallucination_probes/` | "Real-Time Detection of Hallucinated Entities in Long-Form Generation" — Obeso et al. (ETH Zürich & MATS, 2025) | 2509.03531 |
+| `papers/llm_alignment/gradient_routed_capability_removal/` | "Gradient-Routed Capability Removal" — SGTM / GRAM (Anthropic collaborators & AE Studio, 2025–2026) | 2512.05648; Anthropic Alignment post |

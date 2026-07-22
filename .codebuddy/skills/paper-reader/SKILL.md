@@ -1,7 +1,7 @@
 ---
 name: paper-reader
-description: Read and process academic papers (arXiv or local PDF) into structured, section-level Markdown files under papers/. Prefers HTML when available; falls back to PDF+MinerU. When the user wants to add/process/archive a paper, produces a multi-file structured breakdown with README index.
-argument-hint: <arXiv-URL-or-PDF-path> [short_name]
+description: Read and process academic papers from arXiv, public HTML pages, or PDFs into structured, section-level Markdown files under papers/. Prefers native arXiv HTML, then MinerU HTML for other accessible webpages, with PDF+MinerU as fallback. When the user wants to add/process/archive a paper, produces a multi-file structured breakdown with README index.
+argument-hint: <arXiv-URL-or-public-HTML-URL-or-PDF-path> [short_name]
 arguments: [source, short_name?]
 disable-model-invocation: false
 ---
@@ -14,12 +14,13 @@ This skill helps the AI **read and process academic papers** into a structured, 
 
 > **HTML first, PDF as fallback. Structured multi-file output.**
 
-- **HTML first** — If the publisher provides a high-quality HTML rendering (e.g. `https://arxiv.org/html/<id>`), preprocess it with `tools/arxiv_html_to_md.py` and use the generated Markdown intermediates as the source of truth. No PDF download, no MinerU.
-- **PDF fallback** — If HTML is missing or low quality, download the PDF and parse it with MinerU into clean Markdown.
+- **HTML first** — For arXiv, if the publisher provides a high-quality HTML rendering (e.g. `https://arxiv.org/html/<id>`), preprocess it with `tools/arxiv_html_to_md.py` and use the generated Markdown intermediates as the source of truth. No PDF download or MinerU is needed.
+- **Generic HTML (optional)** — For a non-arXiv public HTML page, MinerU's `MinerU-HTML` model is an optional extraction tool when direct HTML reading is insufficient or the user requests it. When selected and service access succeeds, it returns extracted `main.html` and `full.md`.
+- **PDF fallback** — If no reliable HTML route is available, download the PDF and parse it with MinerU into clean Markdown.
 - **Structured output** — Regardless of input format, produce section files + README + CLAUDE.md update.
 
 **Input:**
-- `$source` (required) — arXiv URL or local PDF path.
+- `$source` (required) — arXiv URL, public HTML URL, or local/remote PDF path.
 - `$short_name` (optional) — snake_case folder name. **If the user does not provide one, the AI picks it.** Derive it from the paper title: lowercase, underscore-separated, 1–3 words, memorable and unambiguous (e.g. `deepseek_r1`, `grpo`, `capacity_interference`). Avoid generic names. If a folder with that name already exists, pick a different name or ask.
 
 **Category subdirectory:** Papers are organized under `papers/<category>/<short_name>/`, not `papers/<short_name>/`. Check `CLAUDE.md` for existing categories (e.g. `rl_policy_optimization`, `peft_lora`, `learning_dynamics_capacity`, `efficient_architectures`, `llm_security`). Pick the best-fitting existing category; create a new one only if no existing category fits, and add it as a new `### <Category Name>` section in `CLAUDE.md`.
@@ -29,8 +30,9 @@ This skill helps the AI **read and process academic papers** into a structured, 
 ## Quick Decision
 
 - arXiv HTML available and complete → Strategy 1 (HTML transcription via `arxiv_html_to_md.py`)
-- HTML missing/incomplete → Strategy 2 (HF Papers — fast, clean formatting, but may be incomplete)
-- HF Papers incomplete or unavailable → Strategy 3 (MinerU — cloud VLM API preferred, local pipeline fallback)
+- Non-arXiv public HTML page → read the source directly first; optionally select Strategy 1B (MinerU `MinerU-HTML`) when extra extraction is needed and the service can reach the URL
+- arXiv HTML missing/incomplete → Strategy 2 (HF Papers — fast, clean formatting, but may be incomplete)
+- No reliable HTML/HF route → Strategy 3 (MinerU PDF — cloud VLM API preferred, local pipeline fallback)
 - **Always run `hf papers info <arXiv-ID>` for metadata** (title, authors, GitHub repo, etc.) regardless of content strategy.
 - All paths converge to **Phase 1–3** below for structured output.
 
@@ -61,6 +63,24 @@ If the HTML page is missing (404), blocked, or the outline shows missing major s
 Use the generated `chunks/` files as the source of truth. Read the chunk files to understand the full paper content before planning the file partition. If the tool fails or the outline appears incomplete, fall back to **Strategy 2**.
 
 Older or unusual papers (scanned PDFs, non-LaTeX) often have no HTML version.
+
+---
+
+## Strategy 1B: Optional Generic HTML Extraction (MinerU-HTML)
+
+Use only when direct reading of a non-arXiv web page is inadequate, a structured Markdown extraction is useful, or the user explicitly requests MinerU. It is not a required step for public HTML sources. If selected, first verify that the page is publicly accessible, then submit the URL to MinerU. **HTML requires `model_version: "MinerU-HTML"`; do not submit it to the PDF `vlm` model.**
+
+```bash
+curl -s --request POST 'https://mineru.net/api/v4/extract/task' \
+  --header "Authorization: Bearer $MINERU_API_TOKEN" \
+  --header 'Content-Type: application/json' \
+  --data-raw '{"url": "<HTML_URL>", "model_version": "MinerU-HTML"}'
+# → returns {"data": {"task_id": "..."}}
+```
+
+Poll and download the task result with the same commands as Strategy 3, Option A. Use `full.md` as the parsed source and retain `main.html` as the extracted-body backup. Parameters such as `language`, `is_ocr`, `enable_formula`, and `enable_table` do not apply to `MinerU-HTML`.
+
+**Service-access restriction:** MinerU must be able to retrieve the URL from its own servers. If it returns a regional-regulation, network, or access error (as it did for `alignment.anthropic.com`), do not retry the same route. Instead, use a linked paper PDF or another accessible source; then follow Strategy 2 or Strategy 3 as appropriate.
 
 ---
 
@@ -95,7 +115,7 @@ If significant content is missing (appendices, references, or all tables), fall 
 
 ## Strategy 3: PDF Fallback (MinerU)
 
-Use when both HTML and HF Papers are missing or incomplete. Prefer the cloud VLM API over local parsing — it produces better block equation quality, doesn't require a local GPU, and is faster.
+Use when no reliable HTML or HF Papers route is available. Prefer the cloud VLM API over local parsing — it produces better block equation quality, doesn't require a local GPU, and is faster.
 
 ### PDF conversion
 Normalize arXiv IDs or arXiv `abs`/`html`/`pdf` URLs to `https://arxiv.org/pdf/<id>`. For non-arXiv URLs, use the URL as-is. For local PDFs, use the local path directly.
@@ -160,7 +180,7 @@ find <OUTPUT_DIR> -name '*.md' -print
 
 ## Non-arXiv Papers
 
-Same principle applies: prefer HTML from OpenReview / ACL Anthology / etc.; probe directly to decide. For non-arXiv papers, `hf papers` commands won't work (they require arXiv IDs). Use available web tools and page completeness checks; if no reliable HTML source exists, fall back to PDF/MinerU.
+Prefer a high-quality publisher HTML page and read it directly when its structure is sufficient. Strategy 1B's `MinerU-HTML` model is optional for cases needing structured Markdown extraction; if selected, first confirm that MinerU can access the URL, since a browser-accessible page can still be blocked from MinerU's servers by regional or network restrictions. For non-arXiv papers, `hf papers` commands will not work (they require arXiv IDs). If the HTML route is inaccessible or unreliable, use a linked PDF and Strategy 3.
 
 ---
 
@@ -168,9 +188,11 @@ Same principle applies: prefer HTML from OpenReview / ACL Anthology / etc.; prob
 
 **Goal:** Decide the paper's file layout before writing section files.
 
-**Metadata (always):** Run `hf papers info <arXiv-ID>` to get clean metadata — title, authors, published date, GitHub repo URL, AI summary, and keywords. This is more reliable than scraping arXiv abs pages and often provides the code URL that arXiv doesn't list. Use this metadata for the README header in Phase 3.
+**Metadata:** For arXiv sources, always run `hf papers info <arXiv-ID>` to get clean metadata — title, authors, published date, GitHub repo URL, AI summary, and keywords. This is more reliable than scraping arXiv abs pages and often provides the code URL that arXiv doesn't list. For non-arXiv HTML or PDFs, extract equivalent metadata from the source page or PDF. Use the resulting metadata for the README header in Phase 3.
 
-**HTML path:** The `arxiv_html_to_md.py` tool already generated `outline.json` (with metadata + chunk index) and `chunks/sNN_*.md` (one per section). Use the outline as the partition basis — inspect chunk titles and sizes to decide which sections to combine or keep separate. Read front matter and skim conclusion/appendix chunks for context.
+**arXiv HTML path:** The `arxiv_html_to_md.py` tool already generated `outline.json` (with metadata + chunk index) and `chunks/sNN_*.md` (one per section). Use the outline as the partition basis — inspect chunk titles and sizes to decide which sections to combine or keep separate. Read front matter and skim conclusion/appendix chunks for context.
+
+**Optional MinerU-HTML path:** Only if Strategy 1B was selected, use `full.md` as the source and `main.html` to resolve missing structure or text. List headings with `grep -E '^#{1,3}[[:space:]]' <full.md>`; if the headings are sparse, inspect `main.html` and establish the paper's section order before partitioning.
 
 **HF Papers path:** Use grep/search on the HF Papers Markdown to list all headings: `grep -E '^#{1,4}[[:space:]]' <hf_parsed.md>`. Note that heading hierarchy may be inconsistent — normalize during planning. If the completeness check (Strategy 2) found missing appendices, note which sections are absent and plan to supplement from MinerU.
 
@@ -184,7 +206,7 @@ Then pick a `short_name` if not provided.
 
 Create `papers/<short_name>/` and write all section files. If using MinerU and an images directory exists, copy it alongside the section files, for example: `cp -r <mineru_output_dir>/auto/images <output_dir>/images`.
 
-**Writing strategy (all paths):** The current agent writes all section files directly — no subagents. This applies to the HTML path (using `chunks/sNN_*.md` as source), the HF Papers path (using `hf_parsed.md` as source, supplementing missing sections from MinerU if needed), and the PDF/MinerU path (using `<parsed.md>` line ranges as source). For each section file, read the corresponding source content and write the enriched section file immediately. This approach ensures:
+**Writing strategy (all paths):** The current agent writes all section files directly — no subagents. This applies to the arXiv HTML path (using `chunks/sNN_*.md` as source), the optional MinerU-HTML path when Strategy 1B was selected (using `full.md`, with `main.html` as a fidelity check), the HF Papers path (using `hf_parsed.md`, supplementing missing sections from MinerU if needed), and the PDF/MinerU path (using `<parsed.md>` line ranges as source). For each section file, read the corresponding source content and write the enriched section file immediately. This approach ensures:
 - **Consistent formatting** — one agent applies all conventions uniformly across every file
 - **No redundant reads** — the main agent builds up the paper context once, instead of N subagents each re-reading the same source
 - **Full narrative coherence** — the agent sees the paper holistically, preserving cross-references and flow between sections
@@ -204,7 +226,7 @@ Regardless of approach, apply the same quality standard — concrete mechanisms,
    - **Block equations** (display math): `$$...$$` on its own line
    - **Inline math**: `$...$` within text
    - **Never** use fenced code blocks (\`\`\`) for equations — code fences prevent math rendering
-   - **Fix MinerU OCR artifacts actively.** When using MinerU output (Strategy 3), formulas may contain systematic errors: spaces in numbers (`1 0` → `10`), spaces in `\mathrm{}` blocks (`b e n i g n` → `benign`), and misidentified symbols (`\dot{2}` → `2`, `\gimel` → correct value, `\breve{5}` → `5`, `\mathsf{l}` → `1`). The agent should recognize and fix these using its LaTeX knowledge and the surrounding context — this is a key advantage of LLM-based transcription over raw tool output.
+   - **Fix MinerU extraction artifacts actively.** When using MinerU output (Strategy 1B or 3), formulas may contain systematic errors: spaces in numbers (`1 0` → `10`), spaces in `\mathrm{}` blocks (`b e n i g n` → `benign`), and misidentified symbols (`\dot{2}` → `2`, `\gimel` → correct value, `\breve{5}` → `5`, `\mathsf{l}` → `1`). The agent should recognize and fix these using its LaTeX knowledge and the surrounding context — this is a key advantage of LLM-based transcription over raw tool output.
    - If MinerU has garbled an equation beyond simple fixes (broken symbols, missing terms), include a best-effort LaTeX reconstruction and mark it `[OCR uncertain]` rather than dropping it silently.
 
 4. **Faithful transcription of sensitive content.** Transcribe the paper's content faithfully by default, even when the content itself is harmful (e.g., a security paper's attack transcripts or proof-of-concept outputs). Such content is the paper's *evidence* of a vulnerability, not instructions to the reader, and the paper is already publicly available. In the rare extreme case where specific, directly-actionable steps cannot be transcribed verbatim (e.g., step-by-step instructions for manufacturing explosives or weapons), write a concise summary of what the content is and note that the paper reproduces it verbatim, then **label the omission explicitly** (e.g., `[verbatim steps omitted; paper reproduces them in full]`). **Never silently drop or skip content** — silent omission violates the transcription principle. A labeled summary preserves the documentary record while being transparent about the edge case.
