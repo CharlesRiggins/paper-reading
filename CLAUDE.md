@@ -36,6 +36,7 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 | `papers/learning_dynamics_capacity/neural_scaling_laws/` | "Explaining Neural Scaling Laws" — Bahri et al. (Google DeepMind / Johns Hopkins, 2021) | 2102.06701 |
 | `papers/learning_dynamics_capacity/parameter_symmetries/` | "The Empirical Impact of Neural Parameter Symmetries, or Lack Thereof" — Lim et al. (MIT CSAIL / UC Berkeley / Northeastern University / Technion, NVIDIA / TU Munich, MIT, 2024) | 2405.20231 |
 | `papers/learning_dynamics_capacity/spikes_sinks/` | "The Spike, the Sparse and the Sink: Anatomy of Massive Activations and Attention Sinks" — Sun et al. (NYU / Meta FAIR, 2026) | 2603.05498 |
+| `papers/learning_dynamics_capacity/lm_memorization/` | "How much do language models memorize?" — Morris et al. (FAIR at Meta / Google DeepMind / Cornell University / NVIDIA, 2025) | 2505.24832 |
 
 ### Efficient Architectures & Frontier Systems
 
@@ -57,3 +58,4 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 | `papers/llm_alignment/steg_finetuning/` | "Invisible Safety Threat: Malicious Finetuning for LLM via Steganography" — Wan et al. (National University of Singapore, 2025) | 2603.08104 |
 | `papers/llm_alignment/hallucination_probes/` | "Real-Time Detection of Hallucinated Entities in Long-Form Generation" — Obeso et al. (ETH Zürich & MATS, 2025) | 2509.03531 |
 | `papers/llm_alignment/gradient_routed_capability_removal/` | "Gradient-Routed Capability Removal" — SGTM / GRAM (Anthropic collaborators & AE Studio, 2025–2026) | 2512.05648; Anthropic Alignment post |
+| `papers/llm_alignment/natural_language_autoencoders/` | "Natural Language Autoencoders Produce Unsupervised Explanations of LLM Activations" — Fraser-Taliente et al. (Anthropic, 2026) | Transformer Circuits Thread |
