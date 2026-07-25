@@ -8,7 +8,7 @@ disable-model-invocation: false
 
 # Paper Reader Skill
 
-This skill helps the AI **read and process academic papers** into a structured, browsable knowledge base. The deliverable is a set of section files under `papers/<short_name>/`, indexed by a `README.md`, with the paper tracked in `CLAUDE.md`.
+This skill helps the AI **read and process academic papers** into a structured, browsable knowledge base. The deliverable is a set of section files under `papers/<category>/<short_name>/`, indexed by a `README.md`, with the paper tracked in the categorized "Papers index" in `CLAUDE.md`.
 
 ## Core Principle
 
@@ -21,9 +21,17 @@ This skill helps the AI **read and process academic papers** into a structured, 
 
 **Input:**
 - `$source` (required) — arXiv URL, public HTML URL, or local/remote PDF path.
-- `$short_name` (optional) — snake_case folder name. **If the user does not provide one, the AI picks it.** Derive it from the paper title: lowercase, underscore-separated, 1–3 words, memorable and unambiguous (e.g. `deepseek_r1`, `grpo`, `capacity_interference`). Avoid generic names. If a folder with that name already exists, pick a different name or ask.
+- `$short_name` (optional) — snake_case folder name. **If the user does not provide one, the AI picks it.** Derive it from the paper title: lowercase, underscore-separated, 1–3 words, memorable and unambiguous (e.g. `deepseek_r1`, `grpo`, `capacity_interference`). Avoid generic names. If a folder with that name already exists under `papers/<category>/`, pick a different name or ask.
 
-**Category subdirectory:** Papers are organized under `papers/<category>/<short_name>/`, not `papers/<short_name>/`. Check `CLAUDE.md` for existing categories (e.g. `rl_policy_optimization`, `peft_lora`, `learning_dynamics_capacity`, `efficient_architectures`, `llm_security`). Pick the best-fitting existing category; create a new one only if no existing category fits, and add it as a new `### <Category Name>` section in `CLAUDE.md`.
+**Category subdirectory:** Papers are organized under `papers/<category>/<short_name>/`, not `papers/<short_name>/`. Read the category section headers in `CLAUDE.md`'s Papers index and place the paper in the best-fitting existing category. Current categories (subject to growth) include:
+- `rl_policy_optimization` — RL & Policy Optimization
+- `peft_lora` — Parameter-Efficient Fine-Tuning
+- `model_editing_memory` — Model Editing & Memory
+- `learning_dynamics_capacity` — Learning Dynamics & Capacity
+- `efficient_architectures` — Efficient Architectures & Frontier Systems
+- `llm_alignment` — LLM Alignment & Safety
+
+Create a new category only if none of the existing ones fit: propose a snake_case folder + human-readable title, confirm with the user, then add a new `### <Category Name>` subsection (with its table header) in `CLAUDE.md` before adding the row.
 
 ---
 
@@ -204,7 +212,7 @@ Then pick a `short_name` if not provided.
 
 ## Phase 2 — Write Structured Files
 
-Create `papers/<short_name>/` and write all section files. If using MinerU and an images directory exists, copy it alongside the section files, for example: `cp -r <mineru_output_dir>/auto/images <output_dir>/images`.
+Create `papers/<category>/<short_name>/` and write all section files. If using MinerU and an images directory exists, copy it alongside the section files, for example: `cp -r <mineru_output_dir>/auto/images papers/<category>/<short_name>/images`.
 
 **Writing strategy (all paths):** The current agent writes all section files directly — no subagents. This applies to the arXiv HTML path (using `chunks/sNN_*.md` as source), the optional MinerU-HTML path when Strategy 1B was selected (using `full.md`, with `main.html` as a fidelity check), the HF Papers path (using `hf_parsed.md`, supplementing missing sections from MinerU if needed), and the PDF/MinerU path (using `<parsed.md>` line ranges as source). For each section file, read the corresponding source content and write the enriched section file immediately. This approach ensures:
 - **Consistent formatting** — one agent applies all conventions uniformly across every file
@@ -212,7 +220,15 @@ Create `papers/<short_name>/` and write all section files. If using MinerU and a
 - **Full narrative coherence** — the agent sees the paper holistically, preserving cross-references and flow between sections
 - **Lower overhead** — no prompt construction, subagent startup, or coordination cost
 
-**When to use subagents (exception only):** For exceptionally large papers (60+ pages or 25+ section files) where the main agent's context window cannot accommodate all read+write operations, dispatch **`code-explorer-writer`** subagents in parallel (1–3 files each). This agent has write permission (`write_to_file`, `replace_in_file`, `delete_file`) — do NOT use the plain `code-explorer` subagent for writing tasks, as it is read-only. Provide each subagent with the source content path, assigned section headings/ranges, the content rules below, and `max_turns`. Each must return a 2–5 sentence substantive summary. This exception should be rare; for typical papers (30–50 pages), direct writing is strongly preferred.
+**When to use subagents (exception only):** For exceptionally large papers (60+ pages or 25+ section files) where the main agent's context window cannot accommodate all read+write operations, dispatch **writable** explore+write subagents in parallel (1–3 files each). Do **not** use a read-only explorer. Provide each subagent with: the source content path, assigned section headings/ranges, the **Content Rules** and **Formatting Conventions** below, and an instruction to return a 2–5 sentence substantive summary of what it wrote. This exception should be rare; for typical papers (30–50 pages), direct writing is strongly preferred.
+
+**Host binding** (which writable subagent to dispatch):
+
+| Host | Dispatch |
+|------|----------|
+| CodeBuddy | `code-explorer-writer` (not the read-only `code-explorer`) |
+| Claude Code | `Agent` tool with `subagent_type: general-purpose` |
+| Cursor | `Task` tool with `subagent_type: generalPurpose` |
 
 Regardless of approach, apply the same quality standard — concrete mechanisms, named methods, specific numbers, not generic labels.
 
@@ -273,13 +289,13 @@ Rationale: a knowledge-base reader almost never needs all 300+ rows; the aggrega
 
 ### Write `README.md`
 
-Write `papers/<short_name>/README.md` compiling the 2–4 sentence file descriptions. Include the paper title, arXiv ID, lead author, affiliation, year, and code URL header. Use the metadata from `hf papers info` (Phase 1) for the code URL — it often provides a GitHub repo that arXiv doesn't list.
+Write `papers/<category>/<short_name>/README.md` compiling the 2–4 sentence file descriptions. Include the paper title, identifier, lead author, affiliation, year, and code URL header. For arXiv sources, use the metadata from `hf papers info` (Phase 1) for the code URL — it often provides a GitHub repo that arXiv doesn't list.
 
 **README.md format:**
 
 ```markdown
 # <Full Paper Title>
-arXiv: <ID> | <Lead Author> et al. (<Affiliation>, <Year>)
+<ID line> | <Lead Author> et al. (<Affiliation>, <Year>)
 Code: <GitHub URL or "—">
 
 ## Files
@@ -291,14 +307,17 @@ Code: <GitHub URL or "—">
 - `s<LAST>_<name>.md` — <appendix or other trailing sections, if present>
 ```
 
+For the **`<ID line>`**, use whatever identifier the paper actually has — match the style already in `CLAUDE.md`: `arXiv: <id>` for arXiv papers, `DOI: <doi>`, `Blog Post`, `HuggingFace`, `Transformer Circuits Thread`, or `—` when there is none. Don't fabricate an arXiv ID.
+
 **IMPORTANT:** Each file description should be 2–5 sentences, substantive enough that someone reading only the README gets a real sense of the paper's content. Focus on the core mechanism, key concepts, notable findings, and specific numbers. Generic statements like "this section describes the experiments" are not acceptable.
 
 ### Update CLAUDE.md
 
-Add a row to the "Papers index" table in `CLAUDE.md` (create the table if it doesn't exist):
+The "Papers index" in `CLAUDE.md` is grouped into per-category subsections, each with its own table (columns: Folder | Title | ID). Add a row under the matching category's `### <Category Title>` header:
 ```
-| `papers/<category>/<short_name>/` | "<Title>" — <Author> et al. (<Affiliation>, <Year>) | <arXiv ID> |
+| `papers/<category>/<short_name>/` | "<Title>" — <Author> et al. (<Affiliation>, <Year>) | <ID> |
 ```
+Use the same ID value style as the README's ID line (`2409.15355`, `HuggingFace`, `Blog Post`, `—`, …). If you introduced a **new** category during category selection, add a new `### <Category Title>` subsection with its table header before adding the row.
 
 `CODEBUDDY.md` at the project root is typically a **symlink to `CLAUDE.md`** (or auto-regenerated from it), so editing `CLAUDE.md` already updates both — do not edit `CODEBUDDY.md` separately unless you have confirmed it is a genuinely independent file (e.g., `ls -l CODEBUDDY.md` does not show `-> CLAUDE.md`).
 
@@ -307,14 +326,17 @@ Add a row to the "Papers index" table in `CLAUDE.md` (create the table if it doe
 ## File Layout
 
 ```
-papers/<category>/<short_name>/
-├── README.md                              # Index with substantive file descriptions
-├── s01_<name>.md                          # One file per major section
-├── s02_<name>.md
-├── ...
-├── s<NN>_<MM>_<combined_name>.md          # Optional: 2–3 short/related sections combined
-├── s<NN>_references.md                    # Reference list (wherever it appears in the paper)
-└── s<LAST>_<name>.md                      # Appendix or last section if present
+papers/
+└── <category>/                            # Topic bucket, mirrors a CLAUDE.md index subsection
+    └── <short_name>/
+        ├── README.md                      # Index with substantive file descriptions
+        ├── s01_<name>.md                  # One file per major section
+        ├── s02_<name>.md
+        ├── ...
+        ├── s<NN>_<MM>_<combined_name>.md  # Optional: 2–3 short/related sections combined
+        ├── s<NN>_references.md            # Reference list (wherever it appears in the paper)
+        ├── s<LAST>_<name>.md              # Appendix or last section if present
+        └── images/                        # Figures when extracted (MinerU path), referenced as images/<hash>.jpg
 ```
 
 **Naming:** lowercase, underscores, zero-padded two-digit section numbers. Use `s01`–`s99` by default; reserve `s00` only for a separate front-matter/overview file if one is explicitly needed. Multi-section files list all numbers: `s04_05_experiments_conclusion.md`. Keep names compact (2–4 words). Combine sections only when each is short or tightly coupled. Follow the paper's own section order — references and appendices get numbers matching their position.
