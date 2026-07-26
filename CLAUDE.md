@@ -51,7 +51,6 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 
 | Folder | Title | ID |
 |--------|-------|----|
-| `papers/llm_alignment/adaptive_jailbreaks/` | "Jailbreaking Leading Safety-Aligned LLMs with Simple Adaptive Attacks" — Andriushchenko et al. (EPFL, 2024) | 2404.02151 |
 | `papers/llm_alignment/fab_dormant_attacks/` | "Watch your steps: Dormant Adversarial Behaviors that Activate upon LLM Finetuning" — Gloaguen et al. (ETH Zurich, 2025) | 2505.16567 |
 | `papers/llm_alignment/ft_compromises_safety/` | "Fine-tuning Aligned Language Models Compromises Safety, Even When Users Do Not Intend To!" — Qi et al. (Princeton / Virginia Tech / IBM Research / Stanford, 2023) | 2310.03693 |
 | `papers/llm_alignment/lima/` | "LIMA: Less Is More for Alignment" — Zhou et al. (Meta AI / Carnegie Mellon University / USC / Tel Aviv University, 2023) | 2305.11206 |
