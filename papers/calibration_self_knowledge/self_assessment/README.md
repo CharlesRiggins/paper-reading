@@ -20,3 +20,12 @@
 - `s06_conclusion_limitations.md` — 对应 Section 7 以及主文限制陈述，收束论文的设计含义。文件强调两种信号是互补而非替代：最终置信度适合 trust/abstention/question-level retrieval gating，推理中标记适合在答案提交前介入。它也保留论文承认的范围限制：目前主要研究 factual QA 与 adaptive retrieval，且只使用单一 during-reasoning marker。
 - `s07_references.md` — 将论文 53 条参考文献单独整理为 Markdown 表格。参考文献覆盖 uncertainty estimation/calibration、verbalized confidence、adaptive retrieval、Self-RAG/FLARE/DRAGIN/ADARAGUE、learned control tokens、LLM internal states 与 RL post-training 等主题。
 - `s08_appendix_checklist.md` — 合并整理附录 A–G 与 NeurIPS checklist。文件包括 related work 的定位、trajectory-reweighting proof 的关键命题和公式、额外机制证据、补充定量表格、训练与 baseline 实现细节、错误案例、broader impact，以及 checklist 的答案摘要。它保留复现实验所需的核心配置，例如 verl/HybridFlow、vLLM 0.8.5、Llama-3.1-8B-Instruct、Qwen2.5-7B-Instruct、2×H100 80GB、SFT/GRPO 超参数和数据划分。
+
+## Review / OpenReview artifacts
+
+- `Say When You Don’t Know.md` — 我们的官方 review（Rb3e）；已按 PC 要求从 General 改为 Use-inspired 并重对齐评估。
+- `openreview_submission_original.md` — 作者投稿摘要与申报的 Contribution Type（Use-inspired）。
+- `openreview_rebuttals_original.md` — 作者对我们 review 的 rebuttal（含 MMLU/GSM8K/IFEval 补充结果）。
+- `pc_contribution_type_comment.md` — Program Chairs 关于 Contribution Type 不一致的通知原文。
+- `ac_contribution_type_reply.md` — 仅回复 AC 的变更说明草稿。
+- `review_background_contribution_type.md` — 本次 mismatch、准则差异、review 改动与时间线的背景说明。

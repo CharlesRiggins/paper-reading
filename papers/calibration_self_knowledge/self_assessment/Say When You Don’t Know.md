@@ -1,6 +1,12 @@
-# NeurIPS 2026 Review Form (Draft)
+# NeurIPS 2026 Official Review (Reviewer Rb3e)
 
-Paper: *Say When You Don't Know: Training LLMs to Expose Self-Assessment*
+Paper: *Say When You Don't Know: Training LLMs to Expose Self-Assessment*  
+Submission: 8440  
+OpenReview: https://openreview.net/forum?id=oOILbzcS44  
+Reviewer: Rb3e (Ran Wang)  
+Dates: 26 Jun 2026, 11:40 (modified: 29 Jul 2026, 02:22)
+
+Synced to the submitted OpenReview text, then revised after PC note on Contribution Type mismatch. **Contribution Type corrected: General → Use-inspired**; Strengths/Weaknesses, Questions, Limitations, and Originality re-aligned to Use-inspired criteria. See also [`ac_contribution_type_reply.md`](./ac_contribution_type_reply.md).
 
 ---
 
@@ -10,57 +16,63 @@ This paper tackles LLM self-assessment by reframing it as an "exposure" problem:
 
 ---
 
+## Contribution Type
+
+Use-inspired: The main contribution is in framing or designing approaches to meet the needs of a specific real-world application. (This often involves, e.g., engaging with domain experts.)
+
+---
+
 ## Strengths And Weaknesses
 
 > **Strengths.**
 >
-> - **Thoughtful reward design.** The `<uncertain>` reward asymmetry—penalizing silent failure hardest—effectively converts hidden failures into explicit control signals, and the ablation (Table 10) confirms the design matters.
-> - **Support-preserving theorem.** The trajectory-reweighting analysis clarifies what GRPO can and cannot do: reweight existing trajectories, not create new ones—a timely contribution to the RL capability debate.
-> - **Clean baseline results.** Table 3 shows GRPO is the only method simultaneously winning on ECE, overconfident-wrong rate, and EM, whereas P(True), temperature scaling, and SFT each trade off different metrics.
+> - **Application-matched reward design.** The `<uncertain>` reward asymmetry—penalizing silent failure hardest—directly targets a deployment failure mode (overconfident wrong answers that never trigger intervention). The ablation (Table 10) confirms this design choice matters, and the adaptive-RAG results show the signal can be consumed by a concrete downstream controller.
+> - **Useful mechanism analysis for method design.** The KL / CKA / patching analysis helps explain *why* end-of-answer verbalized confidence and mid-reasoning markers behave differently—valuable for deciding which signal to use under different application constraints.
+> - **Clean calibration and RAG-trigger results.** Table 3 shows GRPO is the only method simultaneously winning on ECE, overconfident-wrong rate, and EM, whereas P(True), temperature scaling, and SFT each trade off different metrics. The adaptive-RAG evaluation is a meaningful use-facing metric beyond pure calibration.
 >
 > **Weaknesses.**
 >
-> **(W1) Limited novelty.** Verbalized confidence has clear precedents (Lin et al. 2022; Kadavath et al. 2022; Yona et al. 2024), and the `<uncertain>` marker is conceptually a learned control token already explored by Self-RAG and backtracking-token work. The incremental contribution beyond these prior works is not clearly articulated.
+> **(W1) Weak use-case grounding.** Under Use-inspired criteria, the central question is whether the work addresses a pre-existing external need and matches design/metrics to that need. The paper motivates "risky failures in real-world applications," but the concrete use case remains generic (LLM overconfidence / factual QA + adaptive RAG on standard benchmarks). There is little evidence of a specific stakeholder need, domain constraint, or non-standard real-world dataset that shaped the task framing. As a result, it is hard to judge whether the proposed signals and metrics are the right ones for a real deployment setting, versus an interesting methodological study framed as use-inspired.
 >
-> **(W2) Undefined terminology.** GRPO and ECE are used throughout without inline definition or citation at first occurrence, making the paper hard to follow for readers unfamiliar with RL post-training or calibration literature.
+> **(W2) Design only loosely matched to deployment needs.** If the intended application is reliable self-assessment for retrieval / abstention / human review, several application-facing pieces are missing: cost/latency of triggered retrieval, false-trigger vs missed-failure trade-offs under realistic budgets, comparison to commonly used non-ML or heuristic interventions, and evaluation beyond academic factual QA. Adaptive RAG is a step in the right direction, but still stays within standard ML benchmark protocols.
 >
-> **(W3) No general-capability evaluation.** All evaluation is on five factual QA datasets. The claim that calibration "does not degrade reasoning accuracy" is only verified on the narrow trained task—no MMLU/GSM8K/HumanEval/MT-Bench results to rule out capability degradation from GRPO post-training, despite parameter drift in broadly shared layers.
+> **(W3) Capability side effects undercut the use claim.** A use-inspired reliability method must not quietly break other deployed behaviors. The paper claims calibration "does not degrade reasoning accuracy," but originally reported no general-capability evaluation despite parameter drift in shared layers. Rebuttal-time results strengthen this concern: MMLU/GSM8K are preserved, but IFEval drops sharply (−19.96 Llama, −14.42 Qwen). For any real application that depends on instruction following, this is a serious deployment risk and should qualify the paper's claims.
 >
-> **(W5) Narrow scope.** Single model family for main results (Qwen relegated to appendix), single during-reasoning marker, no scaling analysis, and no error bars or significance tests (checklist item 7: "No"). Results are limited to factual QA.
+> **(W4) Clarity for an ML audience and evaluation completeness.** GRPO and ECE appear without inline definition/citation at first use. Main results focus on a single model family (Qwen in appendix), with no error bars or significance tests (checklist item 7: "No"). These issues limit how confidently practitioners could adopt or reproduce the approach.
 
 ---
 
 ## Quality
 
-2 (not good)
+2: not good
 
 ---
 
 ## Clarity
 
-2 (not good)
+2: not good
 
 ---
 
 ## Significance
 
-2 (not good)
+2: not good
 
 ---
 
 ## Originality
 
-2 (not good)
+3: good
 
 ---
 
 ## Questions
 
-1. **General-capability preservation.** Can the authors report MMLU, GSM8K, and at least one instruction-following benchmark (e.g., MT-Bench/AlpacaEval) before and after GRPO training? This is critical to verify that calibration post-training does not cause capability degradation. If degradation is observed, how should the "without degrading reasoning accuracy" claim be qualified?
+1. **Concrete use case.** What is the specific real-world application this work is designed for (beyond generic LLM overconfidence)? Are there external stakeholders or domain constraints that shaped the choice of signals, rewards, or metrics? If the intended use is adaptive retrieval / abstention, can the authors state the operating constraints (budget, latency, cost of missed failures vs false triggers) and show that the method is matched to them?
 
-2. **Comparison with end-to-end agentic tool-use training.** In a setting where an agent is trained end-to-end with tool access and task-success reward, the model implicitly learns when to call tools—which already requires some form of self-awareness. Have the authors compared explicit self-assessment training against this implicit alternative? If end-to-end agentic training achieves comparable calibration and downstream performance, what is the unique value of training explicit signals (beyond interpretability)?
+2. **General-capability / instruction-following preservation.** The rebuttal IFEval drops (~15–20 points) indicate a clear capability trade-off. How should the "without degrading reasoning accuracy" claim be revised for a use-inspired reliability method? What mitigation (stronger KL, mixed instruction replay, multi-objective checkpointing) would be required before deployment?
 
-3. **Incremental contribution over Self-RAG.** Self-RAG already trains retrieve/critique tokens. What specifically does the during-reasoning `<uncertain>` marker add beyond Self-RAG's critique tokens? A head-to-head comparison or a clearer articulation of the design difference would strengthen the novelty claim.
+3. **Incremental value over Self-RAG in the target application.** Self-RAG already trains retrieve/critique tokens tied to a retrieval workflow. In the authors' intended use case, what does the during-reasoning `<uncertain>` marker uniquely enable that Self-RAG (or a simple heuristic trigger) does not—e.g., controller-agnostic risk exposure, earlier intervention, or better budget control? A clearer application-level comparison would strengthen the contribution.
 
 4. **Terminology.** Could the authors add brief inline definitions (or at least citations at first occurrence) for GRPO and ECE?
 
@@ -68,40 +80,40 @@ This paper tackles LLM self-assessment by reframing it as an "exposure" problem:
 
 ## Limitations
 
-Partially addressed. The authors are upfront about the factual-QA-only scope and the single-marker design (Section 7.1), and the broader-impact statement honestly notes the over-trust risk. However, the absence of general-capability evaluation is a critical omission not mentioned in the limitations section—this should be acknowledged, especially given that the mechanism analysis shows parameter drift in broadly shared layers.
+Partially addressed. The authors note the factual-QA-only scope and single-marker design (Section 7.1), and the broader-impact statement notes over-trust risk. Under a Use-inspired reading, two omissions are more critical: (i) the lack of a clearly specified external use case / deployment evaluation, and (ii) general-capability side effects—especially instruction-following degradation now reported in the rebuttal. Both should be acknowledged as limitations of the current evidence for real-world applicability.
 
 ---
 
 ## Rating
 
-3 (Borderline reject)
+3: Borderline reject: Technically solid paper where reasons to reject, e.g., limited evaluation, outweigh reasons to accept, e.g., good evaluation. Please use sparingly.
 
 ---
 
 ## Confidence
 
-4
+4: You are confident in your assessment, but not absolutely certain. It is unlikely, but not impossible, that you did not understand some parts of the submission or that you are unfamiliar with some pieces of related work.
 
 ---
 
 ## Ethical Concerns
 
-- [x] NO or VERY MINOR ethics concerns only
+NO or VERY MINOR ethics concerns only
 
 ---
 
 ## Paper Formatting Concerns
 
-No major formatting or anonymity concerns noted.
+No.
 
 ---
 
 ## Code Of Conduct Acknowledgement
 
-- [x] Yes
+Yes
 
 ---
 
 ## Responsible Reviewing Acknowledgement
 
-- [x] Yes
+Yes
