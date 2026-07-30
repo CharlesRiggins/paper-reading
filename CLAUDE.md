@@ -25,6 +25,7 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 
 | Folder | Title | ID |
 |--------|-------|----|
+| `papers/model_editing_memory/rome/` | "Locating and Editing Factual Associations in GPT" — Meng et al. (MIT CSAIL / Northeastern University / Technion, 2022) | 2202.05262 |
 | `papers/model_editing_memory/memit/` | "Mass-Editing Memory in a Transformer" — Meng et al. (MIT CSAIL / Northeastern University / Technion, 2022) | 2210.07229 |
 
 ### Learning Dynamics & Capacity
