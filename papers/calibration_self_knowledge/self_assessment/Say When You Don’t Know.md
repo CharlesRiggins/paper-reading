@@ -117,3 +117,17 @@ Yes
 ## Responsible Reviewing Acknowledgement
 
 Yes
+
+---
+
+## Final Justification
+
+**Recommendation: 3 (Borderline reject).** After the Use-inspired re-alignment and the rebuttal, I keep this score. No further reviewer/AC discussion beyond the PC Contribution Type note informed this decision.
+
+**Resolved:** Terminology fixes (Q4) and clearer Self-RAG / agentic positioning (Q2–Q3) — helpful clarifications, **low weight**.
+
+**Partially resolved / net-negative:** Capability evals (Q1) show MMLU/GSM8K preserved, but **IFEval drops ~15–20 pts**. For a Use-inspired reliability method this is a serious deployment side effect — **high weight against**.
+
+**Unresolved (main reject reasons):** Weak concrete use-case grounding (W1, **highest weight**); design/metrics still not matched to deployment constraints (W2, **high weight**). Strong factual-QA calibration and RAG-trigger results are real positives, but do not outweigh these gaps.
+
+**For authors:** (1) Specify a real use case and match evaluation to its constraints. (2) Treat the IFEval drop as a central limitation and qualify capability claims. (3) Show application-level value vs Self-RAG/heuristics, not only conceptual differences.
