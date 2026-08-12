@@ -2,6 +2,11 @@
 
 This project is intended both for reading papers to deepen knowledge and for preparing post-training interviews. These two goals run in parallel and reinforce each other.
 
+## Chat formatting
+
+- In Cursor chat responses, use `\( ... \)` for inline math instead of single-dollar delimiters, which Cursor chat intentionally does not render.
+- This applies only to chat. When writing Markdown files in the repository, follow the existing project convention: `$...$` for inline math and `$$...$$` for display math.
+
 ## Papers index
 
 Papers are organized by topic under `papers/<category>/`. The categories double as interview-prep tracks.
@@ -38,6 +43,7 @@ Papers are organized by topic under `papers/<category>/`. The categories double 
 | `papers/learning_dynamics_capacity/parameter_symmetries/` | "The Empirical Impact of Neural Parameter Symmetries, or Lack Thereof" — Lim et al. (MIT CSAIL / UC Berkeley / Northeastern University / Technion, NVIDIA / TU Munich, MIT, 2024) | 2405.20231 |
 | `papers/learning_dynamics_capacity/spikes_sinks/` | "The Spike, the Sparse and the Sink: Anatomy of Massive Activations and Attention Sinks" — Sun et al. (NYU / Meta FAIR, 2026) | 2603.05498 |
 | `papers/learning_dynamics_capacity/lm_memorization/` | "How much do language models memorize?" — Morris et al. (FAIR at Meta / Google DeepMind / Cornell University / NVIDIA, 2025) | 2505.24832 |
+| `papers/learning_dynamics_capacity/nexus/` | "Nexus: Same Pretraining Loss, Better Downstream Generalization via Common Minima" — Chen et al. (Tsinghua University & ByteDance Seed, 2026) | 2604.09258 |
 
 ### Efficient Architectures & Frontier Systems
 
